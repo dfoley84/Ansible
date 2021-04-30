@@ -1,0 +1,23 @@
+---
+    - hosts: localhost
+      gather_facts: false
+      connection: local
+      tasks:
+      - name: Create Cluster 
+        vmware_cluster:
+          hostname: "{{ vcenter_server }}"
+          username: "{{ vcenter_user }}"
+          password: "{{ vcenter_pass }}"
+          validate_certs: no
+          datacenter_name: "{{ datacenter_name }}"
+          cluster_name: "{{ cluster_name }}"
+          enable_ha: "{{ enableha }}"
+          ha_vm_monitoring: "{{ hamonitoring }}"
+          enable_drs: "{{ enabledrs }}"
+          drs_default_vm_behavior: "{{ drsbehavior }}"
+          enable_vsan: "{{ enablevsan }}"
+        register: info
+        delegate_to: localhost
+      - debug:
+          var: info
+    

@@ -1,0 +1,21 @@
+  ---
+    - hosts: localhost
+      gather_facts: false
+      connection: local
+      tasks:
+      - name: Add ESXi to Cluster
+        vmware_host:
+          hostname: '{{ vcenter_hostname }}'
+          username: '{{ vcenter_username }}'
+          password: '{{ vcenter_password }}'
+          validate_certs: no
+          datacenter_name: "{{ datacenter_name }}"
+          cluster_name: "{{ cluster_name }}"
+          esxi_hostname: '{{ esxi_hostname }}'
+          esxi_username: '{{ esxi_username }}'
+          esxi_password: '{{ esxi_password }}'
+          state: present
+        register: info
+        delegate_to: localhost
+      - debug:
+          var: info

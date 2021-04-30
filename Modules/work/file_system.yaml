@@ -1,0 +1,24 @@
+---
+  - hosts: localhost
+    connection: local
+    gather_facts: no
+    tasks:
+      - read_csv:
+          path: test.csv
+          #key: path
+        register: test
+      - name: Check File Systems for Any changes
+        file:
+          path: "{{ item.path }}"
+          owner: "{{ item.owner }}"
+          group: "{{ item.group }}"
+          mode: "{{ item.mode }}"
+          state: directory
+          recurse: no
+        loop: "{{ test.list }}"
+        register: status
+        ignore_errors: yes
+      - name: printing variable
+        debug:
+          var: status
+        when: status.changed

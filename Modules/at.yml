@@ -1,0 +1,11 @@
+---
+- host: web
+  user: ansible
+  sudo: yes
+  connection: ssh
+  gather_facts: no 
+    tasks:
+    - name: AT module
+      at: command="ls -al /var/log > /home/test/at.log" count=10 units="minutes"
+      
+      

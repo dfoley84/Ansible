@@ -1,0 +1,28 @@
+--- # Join to Domain
+- hosts: VE
+  user: ansible
+  connection: ssh
+  become: true
+  tasks:
+    - name: Install required packages
+      action: yum name={{ item }} state=present
+      with_items:
+        - realmd
+        - sssd
+        - oddjob
+        - oddjob-mkhomedir
+        - adcli
+        - samba-common
+        - samba-common-tools
+        - krb5-workstation
+        - python-pip
+        
+    - name: Install pexpect
+      pip:
+        name: pexpect
+
+    - name: Join DOMAIN
+      expect:
+        command: /bin/bash -c "/usr/sbin/realm join LOACL.LOCAL --user=administrator"
+        responses:
+          Password for *: "nc"

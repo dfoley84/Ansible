@@ -1,0 +1,11 @@
+---
+- host: web
+  user: ansible
+  sudo: yes
+  connection: ssh
+  gather_facts: no 
+    tasks:
+    - name: Add User
+      user: name=srcapache comment="Service Account" shell=/bin/bash
+
+      

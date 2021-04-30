@@ -1,0 +1,19 @@
+---
+- hosts: SQL
+  user: ansible
+  connection: ssh
+  become: true
+  tasks:
+  - name: Update System
+    apt:
+      update_cache: yes
+
+  - name: Install postgresql with Ansible Galaxy
+    roles:
+      - {role: geerlingguy.postgresql}
+
+  - name: Create a new database
+    postgresql_db:
+      name: Octopusdb
+      encoding: UTF-8
+    become_user: postgres

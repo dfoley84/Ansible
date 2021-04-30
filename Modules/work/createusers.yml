@@ -1,0 +1,30 @@
+---
+- hosts: all
+  become: yes
+  tasks: 
+  - name: Create Group Ansible
+    group:
+      name: Ansible
+      state: present
+  
+  - name: Allow ssh without password
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%Ansible'
+      line: '%Ansible ALL=(ALL) NOPASSWD: ALL'
+
+  - name: Create Users and Add to Ansible 
+    user:
+     name: Ansible
+     group: Ansible
+     createhome: yes
+
+  - name: Copy SSH Key
+    copy:
+     src: ".ssh/"
+     dest: ".ssh/{{items}"
+     mode: 0600
+    with_items:
+    - ansible.pub
+    - ansible

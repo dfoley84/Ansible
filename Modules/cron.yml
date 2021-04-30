@@ -1,0 +1,11 @@
+---
+- host: web
+  user: ansible
+  sudo: yes
+  connection: ssh
+  gather_facts: no 
+    tasks:
+    - name: Add CRON JOB to User
+      cron: name="list files" minute="0" hour="1" job="ls -al" > home/test/cronresult.log"
+
+  

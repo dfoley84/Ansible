@@ -1,0 +1,21 @@
+---
+- hosts: webServers
+  remote_user: root
+
+  tasks:
+  - name: Update HTTP
+    yum: name=http state=lastest
+  - name: write the apache configuration file
+    template: src=/srv/httpd.j2 dest=/etc/httpd.conf
+    service: name=http state=started
+
+- hosts: Postgresql
+  remote_user: root
+
+  tasks:
+  - name: Update Postgresql
+    yum:
+      name: postgresql
+      state: latest
+  - name: Start Postgresql
+    service: name=postresql state=started

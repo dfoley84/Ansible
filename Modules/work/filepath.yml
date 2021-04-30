@@ -1,0 +1,29 @@
+---
+- hosts: VE
+  user: ansible
+  connection: ssh
+  become: true
+  tasks:
+    - name: Create Directory for Cognos Install
+      file:
+        path: /opt/cognos
+        state: directory
+        mode: 0775
+
+    - name: Create Directory for VE Install
+      file:
+        path: /opt/vertex
+        state: directory
+        mode: 0775
+
+    - name: Create Directory for Java8 Install
+      file:
+        path: /opt/java8
+        state: directory
+        mode: 0775
+        
+   - name: Create Directory for PostgreSQL Install
+     file:
+       path: /opt/postgresql
+       state: directory
+       mode: 0775

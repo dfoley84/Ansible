@@ -1,0 +1,16 @@
+---
+  - name: Running update Virtual Record
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Setting Status to Offline
+      uri:
+        url: {{ RecordURL }}/{{ Type }}/{{ Update }}/{{ VM_Name }}/{{ VM_IP_ADDRESS }}
+        method: POST
+        body_format: form-urlencoded
+        body:
+        - [criticality_level, 3]
+        - [status, Offline]
+        - [backup-service, nobackup]
+        - [monitoring, scom.disabled]
+        status_code: 200

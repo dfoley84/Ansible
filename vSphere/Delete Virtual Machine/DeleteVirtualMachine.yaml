@@ -1,0 +1,40 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+  - vmware_guest_info:
+      hostname:  "{{ vcenter_hostname }}"
+      username: "{{ User }}"
+      password: "{{ Pass }}"
+      validate_certs: no
+      datacenter: "{{ Datacenter }}"
+      name: "{{ VM_Name }}"
+      schema: "vsphere"
+      properties: ["runtime.powerState"]
+    delegate_to: localhost
+    register: vminfo
+
+  - debug:
+      var: vminfo
+
+  - vmware_guest_powerstate:
+      validate_certs: no
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ User }}"
+      password: "{{ Pass }}"
+      name: "{{ VM_Name }}"
+      state: powered-off
+    delegate_to: localhost
+    when: vminfo != "poweredOff"
+
+  - name: Deleting The Virutal Machine
+    vmware_guest:
+      hostname:  "{{ vcenter_hostname }}"
+      username: "{{ User }}"
+      password: "{{ Pass }}"
+      validate_certs: no
+      cluster: "{{ cluster_name }}"
+      name: "{{ VM_Name }}"
+      state: absent
+    delegate_to: localhost
+    register: facts

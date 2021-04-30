@@ -1,0 +1,15 @@
+---
+  - name: Running Black Out ServiceNow Playbook
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Adding Virtual Machine to Blackout
+      uri:
+        url: "{{ Service_Catalog }}" 
+        method: POST
+        body_format: form-urlencoded
+        body:
+        - [Schedule, "{{ Ticket_Number }}"]
+        - [Duration, 1440]
+        - [Hostname, "{{ VM_Name }}"]
+        status_code: 200

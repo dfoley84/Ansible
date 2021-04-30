@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+  - vmware_guest_info:
+      hostname:  "{{ vcenter_hostname }}"
+      username: "{{ User }}"
+      password: "{{ pass }}"
+      validate_certs: no
+      datacenter: "{{ datacenter_name }}"
+      name: "{{ VM_Name }}"
+      schema: "vsphere"
+      properties: ["runtime.powerState"]
+    delegate_to: localhost
+    register: vminfo
+
+  - debug:
+      var: vminfo
+
+  - vmware_guest_powerstate:
+      validate_certs: no
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ User }}"
+      password: "{{ pass }}"
+      name: "{{ VM_Name }}"
+      state: powered-off
+    delegate_to: localhost
+    register: deploy
+    when: vminfo != "poweredOff"
+
+  - debug:
+      var: deploy

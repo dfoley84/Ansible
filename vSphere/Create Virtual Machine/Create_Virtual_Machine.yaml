@@ -1,0 +1,49 @@
+---
+    - name: Running Create Virtual Machine Playbook
+      hosts: localhost
+      gather_facts: false
+      connection: local
+      tasks:
+      - name: Virtual Machine and customization
+        vmware_guest:
+          validate_certs: no
+          hostname: "{{ vcenter }}"
+          username: "{{ username }}"
+          password: "{{ password }}"
+          cluster : "{{ cluster }}"
+          datacenter: "{{ datacenter }}"
+          name: "{{ VM_Name }}"
+          folder: /
+          template: "{{ template }}"
+          state: poweredon
+          datastore: "{{ datastore }}"
+          disk:
+          - size_gb: 40
+            type: thin
+            datastore: "{{ datastore }}"
+          networks:
+          - name: "{{ network_name }}"
+            ip: "{{ ip }}"
+            netmask: "{{ netmask }}"
+            gateway: "{{ gateway }}"
+            dns_servers:
+            - "{{ DNS_SERVER1 }}"
+            - "{{ DNS_SERVER2 }}"
+            type: static
+          wait_for_ip_address: yes
+          wait_for_customization: yes
+          customization:
+            hostname: "{{ VM_Name }}"
+            dns_servers:
+            - "{{ DNS_SERVER1 }}"
+            - "{{ DNS_SERVER2 }}"
+            domain: "{{ domain }}"
+            autologon: yes
+            password: "{{ local_pass }}"
+            runonce:
+            - powershell.exe -ExecutionPolicy Unrestricted wget https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1 -OutFile C:\Windows\Temp\ConfigureRemotingForAnsible.ps1
+            - powershell.exe -ExecutionPolicy Unrestricted -File C:\Windows\Temp\ConfigureRemotingForAnsible.ps1 -EnableCredSSP -DisableBasicAuth -Verbose
+          hardware:
+            memory_mb: "{{ mb }}"
+            num_cpus: "{{ cpu }}"
+        delegate_to: localhost

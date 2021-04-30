@@ -1,0 +1,17 @@
+---
+    - name:
+      hosts: localhost
+      gather_facts: false
+      connection: local
+      tasks:
+      - name: Add resource pool to vCenter
+        community.vmware.vmware_resource_pool:
+          hostname: "{{ vcenter_hostname }}"
+          username: "{{ user }}"
+          password: "{{ pass }}"
+          datacenter: "{{ datacenter }}"
+          cluster: "{{ cluster }}"
+          validate_certs: False
+          resource_pool: 'contentlibrary'
+          state: present
+        delegate_to: localhost

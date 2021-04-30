@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Getting Virtual Machine Console
+    uri:
+      url:  http://{{ VM_Record }}/mdb/{{ VM_Name }}?field=console
+      return_content: yes
+      body_format: json
+    register: mdb_console
+  - debug:
+      var: mdb_console
+
+  - vmware_guest_powerstate:
+      validate_certs: no
+      hostname: "{{ mdb_console.json.0['console'] }}"
+      username: "{{ user }}"
+      password: "{{ pass }}"
+      name: "{{ VM_Name1 }}"
+      state: reboot-guest
+    delegate_to: localhost
+    register: deploy

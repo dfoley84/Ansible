@@ -1,0 +1,11 @@
+---
+    - name: Running Create Virtual Machine Playbook
+      hosts: win
+      gather_facts: false
+      tasks:
+      - name: Install application and override expected return codes
+        win_package:
+          path: https://repo.saltstack.com/windows/Salt-Minion-3001-Py3-AMD64-Setup.exe
+          product_id: 'Salt-Minion-3001-Py3-AMD64-Setup.exe'
+          arguments: 'Salt-Minion-3001-Py3-AMD64-Setup.exe /S /master={{ master }} /minion-name={{ minion }}'
+          state: present

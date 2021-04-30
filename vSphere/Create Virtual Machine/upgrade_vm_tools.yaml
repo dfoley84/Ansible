@@ -1,0 +1,29 @@
+---
+    - name: Running VMTools Playbook
+      hosts: localhost
+      gather_facts: false
+      connection: local
+      tasks:
+      - name: Get Virtual Machine info
+        vmware_guest_info:
+          validate_certs: no
+          hostname: "{{ vcenter_hostname }}"
+          username: "{{ user }}"
+          password:  "{{ pass }}"
+          validate_certs: no
+          datacenter: "{{ datacenter_name }}"
+          name: "{{ VM_Name }}"
+          schema: "vsphere"
+          properties:
+        delegate_to: localhost
+        register: vminfo
+
+      - name: Updating VM Tools
+        vmware_guest_tools_upgrade:
+          validate_certs: no
+          hostname: "{{ vcenter_hostname }}"
+          username: "{{ user }}"
+          password: "{{ pass }}"
+          datacenter: "{{ datacenter_name }}"
+          uuid: "{{ vminfo.instance.config.uuid }}"
+        delegate_to: localhost

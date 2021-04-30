@@ -1,0 +1,28 @@
+---
+    - name: Running Initialing Second Disk Drive on Windows Server
+      hosts: win
+      gather_facts: false
+      tasks:
+      - name: retrieve disc information
+        win_disk_facts:
+
+      - name: Setting Disk to Online
+        win_shell: "Set-Disk -Number 1 -IsOffline $False"
+
+      - name: Removing ReadOnly from Disk
+        win_shell: "Set-Disk -Number 1 -IsReadonly $False"
+
+      - name: initialize the disk
+        win_shell: "Initialize-Disk -Number 1"
+
+      - name: create partition partition on the disk
+        win_partition:
+          drive_letter: E
+          partition_size: -1
+          disk_number: 1
+
+      - name: format Disk to NTFS 
+        win_format:
+          drive_letter: E
+          file_system: NTFS
+          new_label: Data

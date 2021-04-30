@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: "Getting UUID For Virtual Machine"
+    vmware_guest_info:
+      hostname:  "{{ vcenter_hostname }}"
+      username: "{{ user }}"
+      password: "{{password}}"
+      validate_certs: no
+      datacenter: "{{ Datacenter }}"
+      name: "{{ vm_name }}"
+      schema: "vsphere"
+      properties: ["config.uuid"]
+    delegate_to: localhost
+    register: vminfo
+    
+  - name: "Renaming existing Machine"
+    vmware_guest:
+      hostname:  "{{ vcenter_hostname }}"
+      username: "{{ user }}"
+      password: "{{password}}"
+      validate_certs: no
+      uuid: "{{ vminfo.instance.config.uuid }}"
+      name: "{{ virtual_machine_rename }}"
+      state: present
+    delegate_to: localhost

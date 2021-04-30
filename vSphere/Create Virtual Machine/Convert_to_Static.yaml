@@ -1,0 +1,34 @@
+
+---
+    - name: Changing DHCP to Static IP 
+      hosts: localhost
+      gather_facts: false
+      connection: local
+      tasks:
+      - name: Setting up a Static IP Address
+        win_shell: |
+          $ipaddress = ((Test-Connection $env:computername -Count 1).ipv4address).ipaddresstostring
+          $Gateway = netsh interface ip show config | findstr "Default Gateway:"
+          $GatewayArray = $Gateway.Split(":")
+          $GatewayArray1 = $GatewayArray[-1]
+          $GatewayValue = $GatewayArray1.Trim()
+          $Subnet = netsh interface ip show config | findstr "Subnet prefix:"
+          $SubnetArray = $Subnet.split("/")
+          $SubnetArray1 = $SubnetArray[1].Split("(mask")
+          $SubnetArray2 = $SubnetArray1[-1].Split(")")
+          $SubnetValue = $SubnetArray2[0]
+          $SubnetValue1 = $SubnetValue.Trim()
+          $wmi = Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'”
+          $wmi.EnableStatic($ipaddress, $SubnetValue1)
+          $wmi.SetGateways($GatewayValue, 1)
+        async: 100
+        poll: 0
+
+      - name: Wait for the hosts network interface to come back up
+        local_action:
+          module: wait_for
+          host: "{{ vm_name }}"
+          port: 5985
+          delay: 10
+          state: started
+        register: wait_result

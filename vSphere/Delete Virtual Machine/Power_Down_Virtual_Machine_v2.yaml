@@ -1,0 +1,50 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Getting vCenter
+    uri:
+      url: http://ucm-{{ URL_MD_Record }}/mdb/{{ fqdn }}?field=console
+      return_content: yes
+      body_format: json
+    register: mdb_console
+  - debug:
+      var: mdb_console
+
+  - copy:
+      content: "{{ mdb_console }}"
+      dest: "/usr2/dfoley/jenkins/workspace/vSphere/Virtual_Machine_Decommissioning/mdb_console.json"
+
+  - name: Getting VM Info
+    block:
+      - name: Get virtual machine info
+        vmware_vm_info:
+          validate_certs: no
+          hostname: "{{ mdb_console.json.0['console'] }}"
+          username: "{{ user }}"
+          password: "{{ pass }}"
+        delegate_to: localhost
+        register: vm_info
+
+      - copy:
+          content: "{{ item }}"
+          dest: "/usr2/dfoley/jenkins/workspace/vSphere/Virtual_Machine_Decommissioning/MachineInfo.json"
+        with_items:
+          - "{{ vm_info.virtual_machines | json_query(query) }}"
+        vars:
+          query: "[?guest_name=='{{ VM_Name }}']"
+
+      - name: Read Json File
+        shell: cat /usr2/dfoley/jenkins/workspace/vSphere/Virtual_Machine_Decommissioning/MachineInfo.json
+        register: json_file
+
+      - name: Power Down Virutal Machine
+        vmware_guest_powerstate:
+          validate_certs: no
+          hostname: "{{ mdb_console.json.0['console'] }}"
+          username: "{{ user }}"
+          password: "{{ pass }}"
+          name: "{{ VM_Name }}"
+          state: powered-on
+        delegate_to: localhost
+        when: (json_file.stdout | from_json).power_state != "poweredOff"

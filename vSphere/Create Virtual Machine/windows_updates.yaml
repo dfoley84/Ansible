@@ -1,0 +1,11 @@
+---
+    - name: Running Create Virtual Machine Playbook
+      hosts: win
+      gather_facts: false
+      tasks:
+      - name: Install Windows Security Patches
+        win_updates:
+          category_names:
+            - SecurityUpdates
+            - CriticalUpdates
+            - UpdateRollups

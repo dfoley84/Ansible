@@ -1,0 +1,30 @@
+---
+  - name: Running Disable Monitoring Playbook
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Creating Service Now Ticket
+      uri:
+        url: "{{ URL_Catalog }}"
+        method: POST
+        user: "{{ user }}"
+        password: "{{ pass }}"
+        body_format: json
+        body: '{
+        "requestor":"{{ userName }}",
+         "user_id": "{{ userName }}",
+         "variables":{
+        	"service_option": "{{ OS_Option }}",
+          "request_type":"1",
+         	"brief_description" : "Please Diasble Monitoring For the Following Virtual Machine: {{ VM_Name }}",
+         	"detailed_description" : "Please Diasble Monitoring For the Following Virtual Machine: {{ VM_Name }}, As this is now being Decommissioned ",
+         	"admin_contact":"{{ ContactUser }}"
+         }}'
+
+        force_basic_auth: yes
+        #follow_redirects: all
+        status_code: 200
+      register: data
+
+    - debug:
+        var: data

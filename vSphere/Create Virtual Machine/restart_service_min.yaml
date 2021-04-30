@@ -1,0 +1,9 @@
+---
+    - name: Running Create Virtual Machine Playbook
+      hosts: win
+      gather_facts: false
+      tasks:
+      - name: Set the log on user to Network Service
+        win_service:
+          name: salt-minion
+          state: restarted

@@ -1,0 +1,20 @@
+---
+    - name: 
+      hosts: win
+      gather_facts: false
+      tasks:
+      - name: Recomment grains 
+        win_lineinfile:
+          path: C:\salt\conf\minion
+          regexp: '^grains:'
+          line: '#grains:'
+      - name: Recomment Roles
+        win_lineinfile:
+          path: C:\salt\conf\minion
+          regexp: '^   roles:'
+          line: '#  roles:'
+      - name: Recomment -webserver
+        win_lineinfile:
+          path: C:\salt\conf\minion
+          regexp: '^    - webserver'
+          line: '#    - webserver'

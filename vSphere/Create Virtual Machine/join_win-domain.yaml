@@ -1,0 +1,17 @@
+---
+    - name: Running Joining VM to Domain
+      hosts: win
+      gather_facts: false
+    #  connection: winrm
+      tasks:
+      - name: Join Windows Server to the Domain
+        win_domain_membership:
+          dns_domain_name: "{{ domain }}"
+          domain_admin_user: "{{ domain_admin_user }}"
+          domain_admin_password: "{{ domain_admin_password }}"
+          state: domain
+        register: domain_state
+
+      - name: Reboot
+        win_reboot:
+        when: domain_state.reboot_required

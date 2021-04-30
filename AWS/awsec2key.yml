@@ -1,0 +1,16 @@
+--- # Key Module
+- hosts: localhost
+  connection: local
+  remote_user: <>
+  become: yes
+  gather_facts: no
+  vars_files:
+    - files/awskey.yml
+  tasks:
+  - name: Create Key Pair
+    ec2_key:
+      aws_access_key: "{{ aws_id }}"
+      aws_secret_key: "{{ aws_key }}"
+      name: KeyPair
+      region: eu-west-1
+      state: present

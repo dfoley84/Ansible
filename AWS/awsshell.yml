@@ -1,0 +1,12 @@
+--- # Simple AWS EC2 Instance to list Directorye
+- hosts: aws
+  remote_user: ec2-user
+  become_method: sudo
+  gather_facts: yes
+  connection: ssh
+  tasks:
+    - name: Excute a Shell Command for Listing Directory
+      shell: ls -l /var/log/messages
+      register: result
+    - name: Display the Results
+      debug: var=result

@@ -1,0 +1,16 @@
+--- # EC2 Start / Stop Instance
+- hosts: localhost
+  connection: local
+  remote_user: david
+  become: yes
+  gather_facts: no
+  var_files:
+  - files/awskey.yml
+  tasks:
+  - name: Manage the state of an Instance
+    ec2:
+      aws_access_key: "{{ aws_id }}"
+      aws_secret_key: "{{ aws_key }}"
+      region: "{{ aws_region }}"
+      instance_ids: 
+      state: running

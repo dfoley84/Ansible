@@ -1,0 +1,15 @@
+--- # Install Apache on EC2
+- hosts: aws
+  remote_user: ec2-user
+  become: yes
+  gather_facts: yes
+  connection: ssh
+  tasks:
+    - name: Install Updates
+      yum: name=* state=latest
+    - name: Install HTTPD
+      yum: name=httpd state=installed
+    - name: Copy
+      copy: src=/home/david/playbooks/AWS/files/index.html dest=/var/www/html/index.html
+    - name: Restart httpd
+      service: name=httpd state=restarted

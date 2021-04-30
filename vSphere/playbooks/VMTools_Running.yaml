@@ -1,0 +1,36 @@
+---
+- hosts: localhost
+  vars_files:
+    - vcenter_vars.yml
+  vars:
+    vm_list:
+    - 
+  tasks:
+  - name: Get information about the virtual machine
+    vmware_guest_info:
+      validate_certs: False
+      hostname: '{{ vcenter_hostname }}'
+      username: '{{ vcenter_username }}'
+      password: '{{ vcenter_password }}'
+      folder: /
+      name: "{{ item }}"
+      datacenter: '{{ Datacenter }}'
+    register: vm_info
+    with_items: "{{ vm_list }}"
+
+  - name: Get Tools status
+    set_fact:
+      desired_vms: "{{ vm_info.results | json_query(jmesquery) }}"
+    vars:
+      jmesquery: "[?instance.guest_tools_status == 'guestToolsNotRunning'].instance.hw_name"
+
+  - name: Reboot the given VM
+    vmware_guest_powerstate:
+      validate_certs: False
+      hostname: '{{ vcenter_hostname }}'
+      username: '{{ vcenter_username }}'
+      password: '{{ vcenter_password }}'
+      folder: /
+      name: "{{ item }}"
+      state: 'reboot-guest'
+    with_items: "{{ desired_vms }}"

@@ -1,0 +1,13 @@
+--- # Install Python pip
+- hosts: Jenkins
+  user: ansible
+  sudo: yes
+  connctionL ssh
+  gather_facts: no
+  tasks:
+    - name: Add Repo
+      command: rpm -iUvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-8.noarch.rpm
+    - name: Install EPEL
+      action: yum name=epel-release state=installed
+    - name: Install Python-pip
+      action: yum name=python-pip state=installed

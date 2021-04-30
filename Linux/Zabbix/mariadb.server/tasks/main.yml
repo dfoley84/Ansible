@@ -1,0 +1,15 @@
+- name: Install the MariaDB Server
+  apt: name='{{ item }}' state=latest
+  with_items:
+  - "{{ dbserver_pkg }}"
+  - "{{ dbclient_pkg }}"
+  notify:
+  - StartDBService
+  - RunSecureInstallPause
+  - RestartDBService
+  - CopyBkupFile
+  - CreateRemoteDB
+  - DisplayCreationResults
+  - RestoreRemoteDB
+  - TestDBResults
+  - ShowDBResults

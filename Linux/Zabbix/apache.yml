@@ -1,0 +1,27 @@
+--- # Install Apache on Ubuntu
+- host: Ubuntu
+  remote_user: ansible
+  become: yes
+  become_method: sudo
+  connection: ssh
+  gather_facts: no
+  vars:
+    pkg: apache2
+  tasks:
+  - name: Install Apache Server on Ubuntu
+    apt:
+      name: '{{ pkg }}'
+      state: latest
+      udpate_cache: yes
+    notify:
+    - startservice
+  handlers:
+  - name: startservice
+    service:
+      name: apache
+      state: restarted
+      enabled: yes
+  - name: Copy Security Config
+    copy:
+      src: /home/ansible/zabbix/files/security.conf
+      dest: /etc/apache2/conf-enabled/security.conf

@@ -1,0 +1,16 @@
+--- #Install Powershell on Jenkins Host
+- hosts: Jenkins
+  user: ansible
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Download Powershell repo
+      command: curl https://packages.microsoft.com/config/rhel/7/prod.repo
+    - name: Add repo
+      command: tee /etc/yum.repos.d/microsoft.repo
+    - name: Install Powershell
+      yum:
+        name: powershell
+        state: installed
+      

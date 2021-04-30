@@ -1,0 +1,16 @@
+--- # Create User Account
+- hosts: VE
+  user: ansible
+  connection: ssh
+  become: true
+  tasks:
+  - name: Add
+      group:
+        name: j2ee
+        state: present
+        system: yes
+  tasks:
+  - user:
+       name: username
+       password: inc
+       groups: j2ee

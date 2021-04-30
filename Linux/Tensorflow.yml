@@ -1,0 +1,27 @@
+--- # Install Tensorflow
+- hosts: Cent
+  user: ansible
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: install Python 3 
+      yum: pkg = {{ item }} state = lastest
+      with_items:
+        - libcupti-dev
+        - python3-numpy
+        - python3-dev 
+        - python3-wheel
+    - name: Install packages with PIP
+      pip: name = {{ item }} state = lastest
+      with_items:
+        - tensorflow 
+        - keras
+        - seaborn
+        - matplotlib
+        - pandas
+        - awscli
+        - jupyter 
+        - opencv-contrib-python
+        
+      

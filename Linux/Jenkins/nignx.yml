@@ -1,0 +1,21 @@
+--- #Install Niginx
+- hosts: Jenkins
+  user: ansible
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+  - name: ensure nginx is at the latest version
+    yum: name=nginx state=latest
+  - name: start nginx
+    service:
+       name: nginx
+       state: started
+  - name: Jenkins Proxy Pass
+    copy:
+      src: /home/ansible/nginx/nginx.conf
+      dest: /etc/nginx/nginx.conf
+  - name: restart nginx
+    service:
+      name: nginx
+      state: restarted

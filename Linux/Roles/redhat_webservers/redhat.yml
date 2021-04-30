@@ -1,0 +1,14 @@
+--- #Master 
+- hosts: all
+  user: ansible
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  pre-tasks:
+  - name: Length
+    raw: date > /home/usr/test.log
+  roles:
+    - redhat_webservers
+  post-tasks:
+  - name: Post Log
+    raw: date > /home/usr/test1.log  

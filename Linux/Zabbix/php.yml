@@ -1,0 +1,25 @@
+--- # Install PHP on Ubuntu
+- host: Ubuntu
+  remote_user: ansible
+  become: yes
+  become_method: sudo
+  connection: ssh
+  gather_facts: no
+  tasks:
+  - name: PHP and Modules 
+    apt:
+      name: '{{ item }}'
+      state: latest
+      with_items:
+        - php
+        - php-pear
+        - php-cgi 
+        - php-common 
+        - libapache2-mod-php 
+        - php-mbstring 
+        - php-net-socket 
+        - php-gd 
+        - php-xml-util 
+        - php-mysql 
+        - php-gettext 
+        - php-bcmath

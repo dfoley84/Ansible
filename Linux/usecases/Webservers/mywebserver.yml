@@ -1,0 +1,31 @@
+--- # Build Apache WebServer
+- host: apacheweb
+  user: ansible
+  sudo: yes
+  connection: ssh 
+  grather_facts: yes
+  vars:
+    apache_pkg: httpd
+    distribution: "{{ ansible_os_family }}"
+    apache_version: 2.4
+    apache_dir: /var/www/index
+  tasks:
+  - name: Install Webserver Package
+    yum: pkg={{ apache_pkg }} state=latest
+  - name: Directory 
+    file: path={{ apache_dir }} state=directory mode=644
+  - name: Copy File Path
+    copy: src=files/httd.conf.template dest=/etc/httpd/httpd.conf owner=root group=root mode=644
+  - name: Create vHost
+    file: path=/etc/httpd/vhost.d state=directory mode=755
+  - name: copy and source index files
+    unarchive: src=files/sitecord.tar.gz des={{ apache_dir }}
+  - name: copy the default vhost
+    copy: src=files/default.conf.template dest=/etc/httpd/vhost.d/default.conf owner=root group=root mode=644
+  - name: Start Web Server
+    service: name=htppd state=started
+  - name: Test WebServer
+    shell: curl http://
+    register: rg
+  - name: Display
+    debug : var=rg

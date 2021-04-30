@@ -1,0 +1,12 @@
+---
+- hosts: all
+  sudo: yes
+  tasks:
+  user:
+    name: "{{ item.name }}"
+    state: present
+    groups: "{{ item.groups }}"
+  loop:
+    - { name: 'jenkins', groups: 'wheel' }
+    - { name: 'docker', groups: 'docker' }
+    - { name: 'ansible', groups: 'sudo' } 

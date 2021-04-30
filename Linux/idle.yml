@@ -1,0 +1,23 @@
+--- #Install IDLE Linux
+- hosts: all
+  user: ansible
+  sudo: yes
+  connection: ssh
+  gather_facts: no
+  tasks:
+    - name: Update 
+      command: apt update
+      apt: name=idle state=present
+      when: >
+        ansible_distribution == 'Ubuntu'
+        or 
+        ansible_distrubution == 'LinuxMint'
+        
+    - name: Update
+      command: yum update
+    - name: Install IDLE
+       action: yum name=python-tools state=present
+       when: >
+        ansible_distribution == 'Centos'
+        
+        

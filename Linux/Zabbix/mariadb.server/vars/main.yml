@@ -1,0 +1,7 @@
+dbserver_pkg: mariadb-server
+dbclient_pkg: mariadb
+dbserver_fqdn: localhost
+dbinstalldir: /var/lib
+dbinstancename: zabbix
+dbdistribution: Ubuntu
+dbversion: 5.5.44

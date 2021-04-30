@@ -1,0 +1,17 @@
+  
+- name: Install Required Applications
+  win_chocolatey:
+    name: "{{ item }}" 
+    state: present
+  loop:
+    - firefox
+    - googlechrome
+    - adobereader
+    - winscp
+    - git
+    - atom
+    - postman
+    - zoom
+    - slack
+    - python
+    - golang

@@ -1,0 +1,12 @@
+---
+    - name: Adding User to Administrator group
+      hosts: win
+      gather_facts: false
+      connection: winrm
+      tasks:
+      - name: Add domain user to the Admin Group
+        win_group_membership:
+          name: Administrators
+          members:
+            - <ServiceAccount>
+          state: present

@@ -1,0 +1,15 @@
+---
+- name: Install SQL Server
+  win_chocolatey:
+    name: sql-server-express
+    state: present
+
+- name: Install SQL Server Management
+  win_chocolatey:
+    name: Sql Server Management 
+    state: present
+
+- name: Install Visual Studio
+  win_chocolatey:
+    name: visualstudio2019community
+    state: present

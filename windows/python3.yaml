@@ -1,0 +1,6 @@
+- name: Ensure python3 installed
+  win_chocolatey:
+    name: python3
+    state: present
+    version: 3.9.0-a6
+    source: http://internal/odata/repo

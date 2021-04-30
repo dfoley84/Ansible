@@ -1,0 +1,9 @@
+--- #Test Winrm from Linux
+  - hosts: WinApache
+    gather_facts: no
+    connection: winrm
+    tasks:
+      - name: run ipconfig
+        win_command: ipconfig /all
+        register: ipconfig
+      - debug: var=ipconfig

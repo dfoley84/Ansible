@@ -1,0 +1,16 @@
+---
+    - name: Configure Hostname
+      hosts: win
+      gather_facts: false
+      connection: winrm
+      tasks:
+      - name: Edit Hostname
+        ansible.windows.win_hostname:
+          name: "{{vmname}}"
+        register: res
+
+      - name: Reboot
+        ansible.windows.win_reboot:
+        when: res.reboot_required
+
+            

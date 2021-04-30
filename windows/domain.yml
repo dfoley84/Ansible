@@ -1,0 +1,24 @@
+--- # Windows Server join Domain
+- hosts: win
+  gather_facts: no 
+  connection: winrm
+  vars_files:
+  - C:\bin\AD.yml
+  tasks:
+  - name: Join Domain
+  - win_dns_client:
+      adpater_names: '*'
+      ipv4_addresses: {{ Domain_ipAddress }}
+     
+  - win_domain_membership:
+      dns_domain_name: {{ Domain_Name }}
+      hostname: {{ Host }}
+      domain_admin_user: {{ Admin_User }}
+      domain_admin_password: {{ Admin_Password }}
+      state: domain
+    register: dmout
+    
+  - win_reboot:
+      when: dmout.reboot_required
+      
+      

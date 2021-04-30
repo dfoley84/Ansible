@@ -1,0 +1,6 @@
+- name: Ensure sql-server-management-studio installed
+  win_chocolatey:
+    name: sql-server-management-studio
+    state: present
+    version: 15.0.18330.0
+    source: http://internal/odata/repo

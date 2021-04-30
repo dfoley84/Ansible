@@ -1,0 +1,16 @@
+- name: Enable HA and VM monitoring without admission control
+  vmware_cluster_ha:
+    hostname: "{{ vcente }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: no
+    datacenter_name: "{{ Datacenter }}" 
+    cluster_name: "{{ cluster_name }}"
+    enable_ha: True
+    ha_vm_monitoring: vmMonitoringOnly
+    reservation_based_admission_control:
+      auto_compute_percentages: False
+      failover_level: 1
+      cpu_failover_resources_percent: 25
+      memory_failover_resources_percent: 25
+  delegate_to: localhost

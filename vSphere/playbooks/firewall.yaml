@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Manage IP and network based firewall permissions for ESXi
+    vmware_host_firewall_manager:
+      hostname: '{{ vcenter_hostname }}'
+      username: '{{ vcenter_username }}'
+      password: '{{ vcenter_password }}'
+      esxi_hostname: '{{ esxi_hostname }}'
+      validate_certs: no
+      rules:
+      - name: httpClient
+        enabled: True
+        allowed_hosts:
+          all_ip: False
+          ip_address: 
+          - "{{ ip_address }}"
+      - name: webAccess
+        enabled: True
+        allowed_hosts:
+          all_ip: False
+          ip_address:
+          - "{{ ip_address }}"
+      - name: vSphereClient
+        enabled: True
+        allowed_hosts:
+          all_ip: False
+          ip_address:
+          - "{{ ip_address }}"
+    delegate_to: localhost
+    register: info
+  - debug:
+      var: info

@@ -1,0 +1,64 @@
+---
+  - name: Running Disable Monitoring Playbook
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Creating Service Now Ticket
+      uri:
+        url: 
+        method: POST
+        return_content: yes
+        user: "{{ user }}"
+        password: "{{ pass }}"
+        body_format: json
+        body: '{
+        "requestor":"",
+         "user_id": "",
+         "variables":{
+                "service_option": "windows_based",
+                "request_type":"1",
+                ""brief_description" : "{{ VM_Name }}",
+                "detailed_description" : " {{ VM_Name }}, ",
+                "admin_contact":""
+         }}'
+
+        force_basic_auth: yes
+        #follow_redirects: all
+        status_code: 200
+      register: data
+    - debug:
+        var: data
+
+    - name: Getting Ticket Status
+      uri:
+        url: 
+        method: GET
+        return_content: yes
+        user: "{{ user }}"
+        password: "{{ pass }}"
+        body_format: json
+        force_basic_auth: yes
+        #follow_redirects: all
+        status_code: 200
+      register: OpenTicket
+    
+    - name: Close Ticket
+      uri:
+        url: {{OpenTicket.json['task'][0]['number']}}/close
+        method: PUT
+        user: "{{ user }}"
+        password: "{{ pass }}"
+        body_format: json
+        body: '{
+        "close_notes":"Closed by Automation",
+        "user_id": "",
+        }'
+        force_basic_auth: yes
+        follow_redirects: all
+        status_code: 200
+      register: Status
+    - debug:
+        var: Status
+
+
+

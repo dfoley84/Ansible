@@ -1,0 +1,22 @@
+---
+  - name: 
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Closing Service Now Ticket
+      uri:
+        url: 
+        method: PUT
+        user: "{{ serviceAccount }}"
+        password: "{{ servicePassword }}"
+        body_format: json
+        body: '{
+        "close_notes":"Closed by Automation",
+        "user_id": "",
+        }'
+        force_basic_auth: yes
+        follow_redirects: all
+        status_code: 200
+      register: data
+    - debug:
+        var: data

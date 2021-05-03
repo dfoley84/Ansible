@@ -1,0 +1,36 @@
+---
+  - name:
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Login
+      uri:
+        url: 
+        method: POST
+        validate_certs: no
+        body_format: form-urlencoded
+        body:
+        - [username, "{{ user }}"]
+        - [password, "{{ password }}"]
+        status_code: 200
+      register: bluecat_token
+    - debug:
+        var: bluecat_token.json["access_token"]
+
+    - name: Configure virtual Machine
+      uri:
+        url: 
+        method: POST
+        validate_certs: no
+        headers:
+          Auth: "Basic {{ bluecat_token.json['access_token'] }}"
+          content-type: 'application/json'
+          cache-control: 'no-cache'
+        body_format: json
+        body:
+          cname: "{{ name }}"
+          target: "{{ target_name }}"
+        status_code: 200
+      register: bluecat_json
+    - debug:
+        var: bluecat_json

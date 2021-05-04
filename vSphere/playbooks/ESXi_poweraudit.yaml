@@ -1,0 +1,28 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Set the Power Management Policy of an ESXi to Balanced
+    vmware_host_powermgmt_policy:
+      hostname: '{{ vcenter_hostname }}'
+      username: '{{ vcenter_username }}'
+      password: '{{ vcenter_password }}'
+      esxi_hostname: '{{ esxi_host }}'
+      policy: balanced
+      validate_certs: no
+      
+    delegate_to: localhost
+    register: info
+  - debug:
+      var: info
+    
+
+  - name: Send Email to Waves T3 on Changed Power Policy
+    mail:
+      host: smtphost..com
+      sender: '@.com'
+      to: '@.com'
+      subject: 'Power Policy ESXi: {{ esxi_hostname }}'
+      body: 'ESXi Power Management Has been Set to Balanced For ESXi Host:  {{ esxi_hostname }}'
+    delegate_to: localhost
+    when: info.changed

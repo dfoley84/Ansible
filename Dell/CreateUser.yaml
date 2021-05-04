@@ -1,0 +1,29 @@
+---
+  - hosts: idrac
+    connection: local
+    name: Create New User within iDrac Server.
+    gather_facts: False
+    tasks:
+    - name: Create New iDrac User
+      idrac_user:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        state: "present"
+        user_name: "{{ new_user }}"
+        user_password: "{{ user_password }}"
+        privilege: "Administrator"
+        ipmi_lan_privilege: "User"
+        enable: "true"
+        sol_enable: "true"
+        protocol_enable: "true"
+        authentication_protocol: "MD5"
+        privacy_protocol: "DES"
+      register: newUser
+      tags:
+          - create-user
+
+    - debug:
+        var: newUser
+      
+ 

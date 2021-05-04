@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  connection: local
+  name: Get Manager Attributes
+  gather_facts: False
+  tasks:
+  - name: Set Power Supply Redundancy Policy to A/B Grid Redundant
+    community.general.idrac_redfish_config:
+      category: Manager
+      command: SetSystemAttributes
+      resource_id: iDRAC.Embedded.1
+      manager_attributes:
+        ServerPwr.1.PSRedPolicy: "A/B Grid Redundant"
+      baseuri: 
+      username: 
+      password: 

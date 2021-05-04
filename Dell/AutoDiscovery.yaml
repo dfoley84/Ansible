@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  connection: local
+  name: Configure Dell Server
+  gather_facts: False
+
+  tasks:
+  - name: Configuring Auto Discovery Settings
+    community.general.idrac_redfish_config:
+      category: Manager
+      command: SetManagerAttributes
+      resource_id: iDRAC.Embedded.1
+      manager_attributes:
+        Autodiscovery.1.EnableIPChangeAnnounce: Enabled
+        Autodiscovery.1.UnsolicitedIPChangeAnnounceRate: Disabled
+        Autodiscovery.1.EnableIPChangeAnnounceFromDHCP: Enabled
+        Autodiscovery.1.EnableIPChangeAnnounceFromUnicastDNS: Enabled
+        Autodiscovery.1.EnableIPChangeAnnounceFrommDNS: Enabled
+      baseuri: 
+      username: 
+      password: 

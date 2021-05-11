@@ -1,0 +1,17 @@
+--
+- hosts: localhost
+  connection: local
+  name: OME Device Discovery
+  gather_facts: False
+  tasks:
+    - ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        name: "{{ hostname }}"
+        discover_range: 
+          - "{{ idrac_ip }}"
+        discover_username: ""
+        discover_password: ""
+        trap_destination: False
+        device_type: "server"

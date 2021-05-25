@@ -1,0 +1,158 @@
+node('Salt'){
+  stage('Clone Repo'){
+      git ''
+  }
+  
+  stage('Adding Server As An AD Object') {
+      withCredentials([usernamePassword(credentialsId: '', passwordVariable: '', usernameVariable: '')]) {
+          catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+          {
+              sh label: '', script: "echo $pass | sudo -S salt '' state.apply createadObject  pillar='{\"Domain\":\"${Domain}\", \"server\":\"${Virtual_Machine_Name}\", \"location\":\"${OU_Server_Path}\"}'"
+          }
+          
+      }
+  }
+  
+  stage('Verifying AD Object') {
+      withCredentials([usernamePassword(credentialsId: '', passwordVariable: '', usernameVariable: '')]) {
+          catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+          {
+              sh label: '', script: "echo $pass | sudo -S salt 'waves-tools' state.apply identity  pillar='{\"server\":\"${Virtual_Machine_Name}\"}'"
+          }
+          
+      }
+  }
+  
+stage('Creating DNS Record'){
+      withCredentials([usernamePassword(credentialsId: '', passwordVariable: '', usernameVariable: '')]) {
+          catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+          {
+              sh label: '', script: 'python Create_A_Record.py $pass $Virtual_Machine_Name.$Domain $IP_ADDRESS'
+              
+          }
+      }
+    }
+
+    stage('Creating Virutal Machine'){
+
+         withCredentials([usernamePassword(credentialsId: '', passwordVariable: '', usernameVariable: ''), usernamePassword(credentialsId: '', passwordVariable: '', usernameVariable: '')]) {
+             if (params.Second_Drive == "Yes" ) {
+                 ansiblePlaybook extras: '-e vcenter="$vCenter" -e username="$user" -e password=$pass -e \'cluster="$Cluster"\' -e \'datacenter="$DataCenter"\' -e \'VM_Name="$Virtual_Machine_Name"\' -e \'template="$Template"\' -e \'datastore="$DataStore"\' -e \'network_name="$Network"\' -e ip=$IP_ADDRESS -e domain=$Domain -e netmask=$Netmask -e gateway=$Gateway -e local_pass=$local_pass -e mb=$RAM -e cpu=$CPU', playbook: 'Create_Virtual_Machine_With_SecondDisk.yaml'
+             }
+             else {
+                 ansiblePlaybook extras: '-e vcenter="$vCenter" -e username="$user" -e password=$pass -e \'cluster="$Cluster"\' -e \'datacenter="$DataCenter"\' -e \'VM_Name="$Virtual_Machine_Name"\' -e \'template="$Template"\' -e \'datastore="$DataStore"\' -e \'network_name="$Network"\' -e ip=$IP_ADDRESS -e domain=$Domain -e netmask=$Netmask -e gateway=$Gateway -e DNS1=$DNS_Primary -e DNS2=$DNS_Secondary -e local_pass=$local_pass -e mb=$RAM -e cpu=$CPU', playbook: 'Create_Virtual_Machine.yaml'
+             }
+         }
+    }
+
+     stage('Wait Time 20 mintues : Allowing for Virtual Machine to be Created') {
+        sleep time: 20, unit: 'MINUTES'
+    }
+
+    stage('Upgrading VMware Tools - On Virtual Machine'){
+        withCredentials([usernamePassword(credentialsId: 'vCenter', passwordVariable: 'pass', usernameVariable: 'user')]) {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+            {
+                ansiblePlaybook becomeUser: null, extras: '-e user=$user -e pass=$pass -e vcenter_hostname=\'$vCenter\' -e datacenter_name=\'$DataCenter\' -e VM_Name=\'$Virtual_Machine_Name\'', playbook: 'upgrade_vmtools.yaml', sudoUser: null
+            }
+        }
+    }
+
+     stage('Wait Time 5 mintues : Allowing for VM Tools to finish') {
+        sleep time: 5, unit: 'MINUTES'
+    }
+
+    stage('Updating Ansible Host') {
+        withCredentials([usernamePassword(credentialsId: 'Windows_Local_Account', passwordVariable: 'pass', usernameVariable: 'user')]) {
+        ansiblePlaybook becomeUser: null, extras: '-e vm_name=$Virtual_Machine_Name -e service=$user -e service_pass=$pass -e ip=$IP_ADDRESS', playbook: 'EditAnsibleHost.yaml', sudoUser: null
+        }
+    }
+
+    stage('Ansible Ping Host') {
+        sh label: '', script: 'ansible -i /srv/ansible/$Virtual_Machine_Name win -m win_ping'
+    }
+
+
+    stage('Configuring Second Disk'){
+            if (params.Second_Drive == "Yes" ) {
+                ansiblePlaybook becomeUser: null, playbook: 'Windows_Disk_Drive.yaml', sudoUser: null
+            }
+            else {
+                echo "User Select No Skipping this Step."
+            }
+
+     }
+
+    stage('Installing SaltStack'){
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+        {
+          ansiblePlaybook becomeUser: null, extras: '-e master="10.49.13.120" -e minion=$Virtual_Machine_Name', inventory: '/srv/ansible/$Virtual_Machine_Name', playbook: 'install_SaltStack.yaml', sudoUser: null
+        }
+    }
+
+    stage('Joining Host to Windows Domain'){
+        withCredentials([usernamePassword(credentialsId: 'Join_Servers_Domain', passwordVariable: 'pass', usernameVariable: 'user')]) {
+         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+              sh label: '', script: 'ansible-playbook -i /srv/ansible/$Virtual_Machine_Name joinDomain.yaml -e domain=$Domain -e VM_Name=$Virtual_Machine_Name -e domain_admin_user=$user -e domain_admin_password=$pass'
+         }
+        }
+    }
+
+    stage('Waiting To Allow Server to Reboot'){
+        sleep time: 5, unit: 'MINUTES'
+    }
+
+    stage('Updating MDB Record') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+        {
+            sh label: '', script: 'ansible-playbook Update_MDB_Record.yaml -i /srv/ansible/$Virtual_Machine_Name  --extra-vars "MDB_VM_Name=$FQDN MDB_VM_IP_ADDRESS=$IP_ADDRESS Requestor_Name=$Admin_Contact group_admin=$Maintained_By site_loc=$Site office_loc=$Office_location criticality_lev=$Critical_Level Monitoring_type=$Monitoring backup_type=$backup_service Domain=$Domain Licenses_type=$license"'
+        }
+    }
+    
+    stage('Adding Domain User to Admin Group'){
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+        {
+            ansiblePlaybook becomeUser: null, inventory: '/srv/ansible/$Virtual_Machine_Name', playbook: 'Add_User_ToGroup.yaml', sudoUser: null
+        }   
+    }
+
+    stage('Installing Azure DSC'){
+         withCredentials([usernamePassword(credentialsId: 'SaltServer', passwordVariable: 'pass', usernameVariable: 'user')]) {
+             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+             {
+                sh label: '', script: 'echo $pass | sudo -S salt "${Virtual_Machine_Name}" state.apply dsc'
+             }
+         }
+    }
+    
+      stage('Update Azure DSC'){
+         withCredentials([usernamePassword(credentialsId: 'SaltServer', passwordVariable: 'pass', usernameVariable: 'user')]) {
+             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+             {
+                 sh label: '', script: 'echo $pass | sudo -S salt "${Virtual_Machine_Name}" cmd.run "Update-DscConfiguration -Wait -Verbose" shell=powershell'
+             }
+         }
+    }
+
+    stage('Uninstall Salt From Virtual Machine'){
+         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+        {
+            sh label: '', script: 'ansible-playbook -i /srv/ansible/$Virtual_Machine_Name uninstall_salt.yaml'
+        }
+
+    }
+
+    stage('Reboot Virtual Machine'){
+        withCredentials([usernamePassword(credentialsId: 'vCenter', passwordVariable: 'pass', usernameVariable: 'user')]) {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE')
+            {
+                ansiblePlaybook becomeUser: null, extras: '-e vcenter=$vCenter -e user=$user -e pass=$pass  -e VM_Name=$Virtual_Machine_Name', playbook: 'reboot_virtualMachine.yaml', sudoUser: null
+            }
+        }
+    }
+
+    stage('Sending Email Notifcation'){
+        emailext attachLog: false, body: '''Jenkins Job For Virtual Machine Creation has Finished The following Machine has been Created Successfully: $Virtual_Machine_Name ''', recipientProviders: [requestor()], subject: 'Virtual Machine Creation - Jenkins', to: ''
+    }
+
+}

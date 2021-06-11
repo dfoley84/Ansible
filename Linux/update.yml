@@ -1,25 +1,25 @@
 ---
-
-- hosts: all
-  sudo: yes
+- name: Update Linux Machine 
+  hosts: all
   tasks:
-    - name: .rpm upgrade server
-      yum: >
+  - name: .rpm upgrade server
+    yum: >
         update_cache=yes
         name=*
         state=latest
         update_cache=yes
-      when: >
+    when: >
         ansible_distribution == 'CentOS'
         or
         ansible_distribution == 'RedHat'
         
-    - name: .deb do dist-upgrade
-      apt: >
+  - name: .deb do dist-upgrade
+    apt: >
         update_cache=yes
         cache_valid_time=1200
         upgrade=dist
-      when: >
+    when: >
         ansible_distribution == 'Debian'
         or
         ansible_distribution == 'Ubuntu'
+

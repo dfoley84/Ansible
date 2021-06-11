@@ -1,5 +1,5 @@
 --- # Create User Account
-- hosts: VE
+- hosts: all
   user: ansible
   connection: ssh
   become: true

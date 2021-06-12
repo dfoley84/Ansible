@@ -1,0 +1,22 @@
+---
+- name: Configure IIS
+  host: web
+  tasks:
+  - name: Install IIS
+    ansible.windows.win_feature:
+      name: Web-Server
+      state: present
+      restart: no
+      include_sub_features: no
+      include_management_tools: no
+  
+  - name: Enable Firewall Rules
+    win_firewall_rule:
+      name: ASP.NET
+      enabled: yes
+      state: present
+      localport: 5000
+      remoteip: "192.168.189.0/24"
+      action: allow
+      direction: in
+      protocol: tcp

@@ -1,6 +1,5 @@
 --- # Create User Account
 - hosts: all
-  user: ansible
   connection: ssh
   become: yes
   tasks:

@@ -2,7 +2,7 @@
 - hosts: all
   user: ansible
   connection: ssh
-  become: true
+  become: yes
   tasks:
   - name: Add
       group:

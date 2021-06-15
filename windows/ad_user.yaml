@@ -1,0 +1,17 @@
+---
+- name: Create AD User
+  host: Domain
+  tasks:
+  - name: Create AD User
+    community.windows.win_domain_user:
+      name: "{{ User_Name}}"
+      firstname: "{{ FName }}"
+      surname: "{{ SName }}"
+      password: "{{ pass }}"
+      password_expired: yes
+      state: present
+      path: "{{ objectpath }}"
+      groups:
+        - "{{ group }}"
+      domain_username: "{{ domain_user }}"
+      domain_password: "{{ domain_pass }}"

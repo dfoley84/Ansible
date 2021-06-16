@@ -1,0 +1,14 @@
+---
+- name: vCenter Connection
+  hosts: localhost
+  connection: local
+  vars:
+    vcenter:
+      - { name: , address:  }
+  tasks:
+  - name: Connect to vCenters
+    include_tasks: GetAllESXi.yaml
+    with_items:
+      - "{{ vcenter }}"
+    loop_control:
+      loop_var: site

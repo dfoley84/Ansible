@@ -1,0 +1,152 @@
+---
+  - hosts: Docker
+    become: true
+    gather_facts: true
+    tasks:
+
+    - name: Update Linux
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install pacakges
+      apt:
+        name: "{{ item }}"
+        state: latest
+        update-cache: yes
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+
+    - name: Adding Docker Key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+        state: present
+
+    - name: Append to File for 18.04
+      ansible.builtin.copy:
+        content: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu   bionic stable"
+        dest: "/etc/apt/sources.list.d/docker.list"
+      when: ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_version'] == "18.04"
+
+    - name: Append to File for 20.04
+      ansible.builtin.copy:
+        content: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu   focal stable"
+        dest: "/etc/apt/sources.list.d/docker.list"
+      when: ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_version'] == "20.04"
+
+    - name: Install Docker
+      apt:
+        name: "{{ item }}"
+        update_cache: yes
+        state: latest
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: Create Docker Group
+      ansible.builtin.group:
+        name: docker
+        state: present
+        gid: 1750
+
+    - name: Add User to Docker Group
+      ansible.builtin.user:
+        name: "{{ user }}"
+        group: docker
+        append: yes
+
+    - name: Restart Server and Wait
+      reboot:
+        reboot_time: 3600
+
+    - name: Get MiniKube
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /srv
+
+    - name: Copy File to Bin
+      ansible.builtin.copy:
+        src: /srv/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: '755'
+
+    - name: Kubectl
+      ansible.builtin.shell: curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+
+    - name: mv Kubectl to bin
+      ansible.builtin.copy:
+        src: ./kubectl
+        dest: /usr/local/bin/kubectl
+        mode: '755'
+
+    - name: Remove Kubectil
+      ansible.builtin.file:
+        path: ./kubectl
+        state: absent
+
+    - name: MiniKube Driver
+      command: minikube config set driver docker
+
+    - name: Start MiniKube
+      command: minikube start --addons=ingress --cpus=6 --install-addons=true --kubernetes-version=stable --memory= 12g
+      become_user:  "{{ user }}"
+      
+    - name: Create Deployment file
+      command: kubectl apply -f https://raw.githubusercontent.com/ansible/awx-operator/0.10.0/deploy/awx-operator.yaml
+      become_user: "{{ user }}"
+      
+    - name: wait for pods to come up
+      shell: kubectl get pods -o json
+      become_user: "{{ user }}"
+      register: kubectl_get_pods
+      until: kubectl_get_pods.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+      delay: 60
+      retries: 30
+
+    - name: AWX Demo YAML
+      copy:
+        dest: ./awx-demo.yml
+        content: |
+            ---
+            apiVersion: awx.ansible.com/v1beta1
+            kind: AWX
+            metadata:
+              name: awx-demo
+            spec:
+              service_type: nodeport
+              ingress_type: none
+              hostname: awx-demo.example.com
+
+      - name: Create Deployment file
+        shell: kubectl apply -f ./awx-demo.yml
+        become_user: dfoley
+
+      - name: wait for pods to come up
+        shell: kubectl get pods -l "app.kubernetes.io/managed-by=awx-operator" -o json
+        become_user:  "{{ user }}"
+        register: kubectl_get_pods
+        until: kubectl_get_pods.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+        delay: 120
+        retries: 30
+
+      - name: Get Secret
+        shell: kubectl get secret awx-demo-admin-password -o jsonpath="{.data.password}" | base64 --decode
+        become_user: "{{ user }}"
+        register: awspass
+
+      - debug:
+          var: awspass
+
+      - name: Start AWX Server
+        shell: kubectl port-forward svc/awx-demo-service --address 0.0.0.0 30886:80
+        become_user: "{{ user }}" 
+
+

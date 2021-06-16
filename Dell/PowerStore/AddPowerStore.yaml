@@ -1,0 +1,50 @@
+---
+  - name: Environment Variables
+    include_vars:
+      file: secrets.yaml
+      name: secret
+
+  - name: Create a vSphere Standard Network
+    block:
+    - name: Create vSwitch
+      community.vmware.vmware_vswitch:
+        hostname: "{{ vsphere.name }}"
+        username: "{{ secret.username }}"
+        password: "{{ secret.password }}"
+        validate_certs: no
+        switch: Storage
+        nics: "{{ Nic }}"
+        mtu: 9000
+      delegate_to: localhost
+    
+    - name: Add VMKernel To vSwitch
+      community.vmware.vmware_vmkernel:
+        hostname: "{{ vsphere.name }}"
+        username: "{{ secret.username }}"
+        password: "{{ secret.password }}"
+        validate_certs: no
+        vswitch_name: Stirage
+        portgroup_name: "{{ PortGroup }}"
+        state: present
+        network:
+          type: 'dhcp'
+      delegate_to: localhost
+
+    - name: Enable iSCSI Initiator
+      community.vmware.vmware_host_iscsi:
+        hostname: "{{ site.name }}"
+        username: "{{ secret.username }}"
+        password: "{{ secret.password }}"
+        esxi_hostname: "{{ vsphere.name }}"
+        state: enabled
+      
+    ## TO DO -> Configure iSCI for VMKernel  / Mount Dell PowerStore to ESXi
+
+          
+        
+
+
+
+
+
+    

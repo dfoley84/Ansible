@@ -127,7 +127,7 @@
 
       - name: Create Deployment file
         shell: kubectl apply -f ./awx-demo.yml
-        become_user: dfoley
+        become_user: "{{ user }}" 
 
       - name: wait for pods to come up
         shell: kubectl get pods -l "app.kubernetes.io/managed-by=awx-operator" -o json

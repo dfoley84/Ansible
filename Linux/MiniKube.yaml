@@ -94,6 +94,7 @@
 
     - name: MiniKube Driver
       command: minikube config set driver docker
+      become_user: "{{ user }}"
 
     - name: Start MiniKube
       command: minikube start --addons=ingress --cpus=6 --install-addons=true --kubernetes-version=stable --memory= 12g

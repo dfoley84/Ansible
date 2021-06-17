@@ -11,7 +11,9 @@
 
     - name: Install MiniKube
       include: minikube.yml
-    
+      vars:
+        user: "{{ my_user }}"
+        
     - name: Start Ansible AWX
       include: awx.yml
       vars:

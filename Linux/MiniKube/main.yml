@@ -1,0 +1,18 @@
+---
+- hosts: docker
+  become: yes
+  vars:
+    my_user: "{{ myUser }}"
+  tasks:
+    - name: install Docker
+      include: docker.yml
+      vars:
+        user: "{{ my_user }}"
+
+    - name: Install MiniKube
+      include: minikube.yml
+    
+    - name: Start Ansible AWX
+      include: awx.yml
+      vars:
+        user: "{{ my_user }}"

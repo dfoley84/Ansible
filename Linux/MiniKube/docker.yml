@@ -1,0 +1,62 @@
+- name: update Debian
+  apt:
+    name: aptitude
+    update_cache: yes
+    force_apt_get: yes
+    state: latest
+  when: ansible_os_family == "Debian"
+
+- name: Install packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  loop:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release
+
+- name: Adding Docker Key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+    state: present
+
+- name: Append to File for 18.04
+  ansible.builtin.copy:
+    content: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu   bionic stable"
+    dest: "/etc/apt/sources.list.d/docker.list"
+  when: ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_version'] == "18.04"
+
+- name: Append to File for 20.04
+  ansible.builtin.copy:
+    content: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu   focal stable"
+    dest: "/etc/apt/sources.list.d/docker.list"
+  when: ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_version'] == "20.04"
+
+- name: Install Docker
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  loop:
+   - docker-ce
+   - docker-ce-cli
+   - containerd.io
+
+- name: Create Docker Group
+  ansible.builtin.group:
+    name: docker
+    state: present
+    gid: 1750
+
+- name: Add User to Docker Group
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: docker
+    append: yes
+
+- name: Restart Server and Wait
+  reboot:

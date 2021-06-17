@@ -128,6 +128,10 @@
       - name: Create Deployment file
         shell: kubectl apply -f ./awx-demo.yml
         become_user: "{{ user }}" 
+        
+      - name: Pause for 3 minutes to allow Kubectl to Deploy AWX-Demo
+        pause:
+          minutes: 3
 
       - name: wait for pods to come up
         shell: kubectl get pods -l "app.kubernetes.io/managed-by=awx-operator" -o json

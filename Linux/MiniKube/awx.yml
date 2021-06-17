@@ -1,0 +1,59 @@
+- name: Start MiniKube
+  command: minikube start --addons=ingress --cpus=2 --install-addons=true --kubernetes-version=stable --memory= 4g
+  become_user:  "{{ user }}"
+
+- name: Create Deployment file
+  command: kubectl apply -f https://raw.githubusercontent.com/ansible/awx-operator/0.10.0/deploy/awx-operator.yaml
+  become_user: "{{ user }}"
+
+- name: wait for pods to come up
+  shell: kubectl get pods -o json
+  become_user: "{{ user }}"
+  register: kubectl_get_pods
+  until: kubectl_get_pods.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delay: 60
+  retries: 30
+
+- name: Create aws-demo yml file
+  copy:
+    dest: ./awx-demo.yml
+    content: |
+      ---
+      apiVersion: awx.ansible.com/v1beta1
+      kind: AWX
+      metadata:
+        name: awx-demo
+      spec:
+        service_type: nodeport
+        ingress_type: none
+        hostname: awx-demo.example.com
+
+- name: Create Deployment file
+  shell: kubectl apply -f ./awx-demo.yml
+  become_user: "{{ user }}"
+
+- name: Pause for 3 minutes to allow Kubectl to Deploy AWX-Demo
+  pause:
+    minutes: 3
+
+- name: wait for pods to come up
+  shell: kubectl get pods -l "app.kubernetes.io/managed-by=awx-operator" -o json
+  become_user:  "{{ user}}"
+  register: kubectl_get_pods
+  until: kubectl_get_pods.stdout|from_json|json_query('items[*].status.phase')|unique == ["Running"]
+  delay: 120
+  retries: 30
+
+- name: Get Secret
+  shell: kubectl get secret awx-demo-admin-password -o jsonpath="{.data.password}" | base64 --decode
+  become_user: "{{ user }}"
+  register: awspass
+
+- debug:
+    var: awspass
+
+- name: Start AWX Server
+  command: kubectl port-forward svc/awx-demo-service --address 0.0.0.0 30886:80
+  async: 45
+  poll: 0
+  become_user: "{{ user }}"

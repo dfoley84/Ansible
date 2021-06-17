@@ -1,0 +1,30 @@
+- name: Get MiniKube
+  get_url:
+    url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    dest: ./
+
+- name: Copy File to Bin
+  ansible.builtin.copy:
+    remote_src: yes
+    src: ./minikube-linux-amd64
+    dest: /usr/local/bin/minikube
+    mode: '755'
+
+- name: Kubectl
+  ansible.builtin.shell: curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+
+- name: mv Kubectl to bin
+  ansible.builtin.copy:
+    remote_src: yes
+    src: ./kubectl
+    dest: /usr/local/bin/kubectl
+    mode: '755'
+
+- name: Remove Kubectil
+  ansible.builtin.file:
+    path: ./kubectl
+    state: absent
+
+- name: MiniKube Driver
+  command: minikube config set driver docker
+  become_user: "{{ user }}"

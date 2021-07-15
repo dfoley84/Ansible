@@ -1,0 +1,33 @@
+  - name: Allow only vCenter to communcate with ESXi via Web/vSphere
+    vmware_host_firewall_manager:
+      hostname: "{{ vCenter }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_password }}"
+      esxi_hostname: "{{ esxi_hostname }}"
+      validate_certs: no
+      rules:
+      - name: CIMHttpServer
+        enabled: True
+        allowed_hosts:
+          all_ip: False
+          ip_address: 
+          - "{{ vcenter_ip_address }}"
+      - name: httpClient
+        enabled: True
+        allowed_hosts:
+          all_ip: False
+          ip_address: 
+          - "{{ vcenter_ip_address }}"
+      - name: webAccess
+        enabled: True
+        allowed_hosts:
+          all_ip: False
+          ip_address:
+          - "{{ vcenter_ip_address }}"
+      - name: vSphereClient
+        enabled: True
+        allowed_hosts:
+          all_ip: False
+          ip_address:
+          - "{{ vcenter_ip_address }}"
+    delegate_to: localhost

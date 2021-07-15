@@ -1,0 +1,11 @@
+- name: Join an AD domain
+  community.vmware.vmware_host_active_directory:
+    hostname: '{{ vcenter_name }}'
+    username: '{{ vcenter_user }}'
+    password: '{{ vcenter_pass }}'
+    esxi_hostname: '{{ ESXi_Host }}'
+    ad_domain: "{{ domain_name }}"
+    ad_user: "{{ domain_user }}"
+    ad_password: "{{ domain_pass }}"
+    ad_state: present
+  delegate_to: localhost

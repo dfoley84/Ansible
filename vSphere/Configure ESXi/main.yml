@@ -1,0 +1,36 @@
+---
+- hosts: localhost
+  gather_facts: false
+  include_vars:
+        file: secrets.yaml
+        name: secret
+  vars:
+    vCenterName: "{{ vCenter_Name }}"
+    DataCenterName: "{{ DC_Name }}"
+    ClusterName: "{{ Cluster_Name }}"
+    ESXiHostname: "{{ ESXI_HostName }}"
+
+  tasks:
+    - name: Join ESXi To Domain
+      include: join_ESXi_domain.yml
+      vars:
+        vcenter_name: "{{ vCenterName }}"
+        vcenter_user: "{{ secret.vcenter_username }}"
+        vcenter_pass: "{{ secret.vcenter_password }}"
+        ESXi_Host: "{{ ESXiHostname }}"
+        domain_name: "{[ secret.domain }}"
+        domain_user: "{{ secret.domain_user }}"
+        domain_pass: "{{ secret.domain_password }}"
+
+    - name: Add ESXi to vCenter Server
+      include: Add_ESXi_to_vCenter.yml
+      vars:
+        vcenter_name: "{{ vCenterName }}"
+        vcenter_user: "{{ secret.vcenter_username }}"
+        vcenter_pass: "{{ secret.vcenter_password }}"
+        DataCenter_Name: "{{ DataCenterName }}"
+        Cluster_Name: "{{ ClusterName }}"
+        ESXi_Host: "{{ ESXiHostname }}"
+        ESXi_User: "{{ secret.esxi_user }}"
+        ESXi_Pass: "{{ secret.esxi_password }}"
+        

@@ -1,0 +1,18 @@
+---
+  - name: Create Service Now Ticket using the Ansible Module
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Creating Service Now Ticket
+      servicenow.servicenow.snow_record:
+        username: "{{ user }}"
+        password: "{{ pwd }}"
+        instance: "{{ snow_host }}"
+        state: present
+        data:
+          short_description: " "
+          severity: 2
+          priority: 1
+      register: ticket
+    - debug:
+        var: ticket

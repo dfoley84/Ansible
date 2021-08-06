@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Create incident
+    servicenow.itsm.incident:
+      instance:
+        host: "{{ host }}"
+        username: "{{user}}"
+        password: "{{ pwd}}"
+      state: on_hold
+      caller: "{{ SE }}"
+      hold_reason: awaiting_caller
+      short_description: user is not receiving email
+      description:  has been unable to receive email for the past 15 minutes
+      impact: medium
+      urgency: medium
+
+      other:
+        expected_start: 2021-02-12

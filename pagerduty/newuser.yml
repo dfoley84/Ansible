@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create New User in PagerDuty
+      community.general.pagerduty_user:
+        access_token: "{{ API_Token }}"
+        pd_user: "{{ username }}"
+        pd_email: "{{ user_email }}"
+        pd_role: "{{ user_role }}"
+        pd_team: "{{ user_team }}"
+        state: present
+      register:
+        debug: Result

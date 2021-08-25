@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Remove User in PagerDuty
+      community.general.pagerduty_user:
+        access_token: "{{ API_Token }}"
+        pd_user: "{{ username }}"
+        pd_email: "{{ user_email }}"
+        state: absent
+      register:
+        debug: Result

@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create New Maintenance Window
+      community.general.pagerduty:
+        name: "{{ customer_stack }}"
+        user: "{{ username }}"
+        state: running
+        service: "{{ service_tag }}"
+        hours: 6
+        desc: "Storage Array upgrade"
+      register: upgrade_win

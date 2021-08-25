@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create New User in PagerDuty
+      block:
+        community.general.pagerduty_user:
+          access_token: "{{ API_Token }}"
+          pd_user: "{{ username }}"
+          pd_email: "{{ user_email }}"
+          pd_role: "{{ user_role }}"
+          pd_team: "{{ user_team }}"
+          state: "{{ state }}" 
+        register:
+          debug: Result
+      when: state == 'present' 
+
+    - name: Remove User in PagerDuty
+      block:
+        community.general.pagerduty_user:
+          access_token: "{{ API_Token }}"
+          pd_user: "{{ username }}"
+          pd_email: "{{ user_email }}"
+          state: "{{ state }}"
+        register:
+          debug: Result
+      when: state == 'absent'

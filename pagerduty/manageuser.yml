@@ -11,8 +11,7 @@
           pd_role: "{{ user_role }}"
           pd_team: "{{ user_team }}"
           state: "{{ state }}" 
-        register:
-          debug: Result
+      register: Result
       when: state == 'present' 
 
     - name: Remove User in PagerDuty
@@ -22,6 +21,5 @@
           pd_user: "{{ username }}"
           pd_email: "{{ user_email }}"
           state: "{{ state }}"
-        register:
-          debug: Result
+      register: Result
       when: state == 'absent'

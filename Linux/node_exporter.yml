@@ -40,5 +40,10 @@
       systemctl daemon-reload
       systemctl start node_exporter
       systemctl enable node_exporter
+  
+  - name: clean up
+    ansible.builtin.file:
+      path: /srv/node_exporter-1.2.2.linux-amd64.tar.gz
+      state: absent
 
   

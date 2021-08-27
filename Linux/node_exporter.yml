@@ -1,0 +1,44 @@
+--- 
+- hosts: docker
+  become: yes
+
+  tasks:
+  - name: Download Prometheus Node Exporter
+    ansible.builtin.shell: |
+      wget https://github.com/prometheus/node_exporter/releases/download/v1.2.2/node_exporter-1.2.2.linux-amd64.tar.gz
+      tar xvfz node_exporter-1.2.2.linux-amd64.tar.gz
+    args:
+      chdir: /srv/
+  
+  - name: Move Node Exporter to Local Bin and add user 
+    ansible.builtin.shell: |
+      mv node_exporter /usr/local/bin/
+      useradd -rs /bin/false node_exporter
+    args:
+      chdir: /srv/node_exporter-1.2.2.linux-amd64/
+  
+  
+  - name: Create Service File
+    copy:
+      dest: /etc/systemd/system/node_exporter.service
+      content: |
+        [Unit]
+        Description=Node Exporter
+        After=network.target
+
+        [Service]
+        User=node_exporter
+        Group=node_exporter
+        Type=simple
+        ExecStart=/usr/local/bin/node_exporter
+
+        [Install]
+        WantedBy=multi-user.target
+  
+  - name: reload Service
+    ansible.builtin.shell: |
+      systemctl daemon-reload
+      systemctl start node_exporter
+      systemctl enable node_exporter
+
+  

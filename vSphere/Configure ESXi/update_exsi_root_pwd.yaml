@@ -1,0 +1,45 @@
+---
+  - hosts: localhost
+    connection: local
+    tasks:
+    - name: Generate Random password for ESXi {{ vsphere.name }}
+      block:
+      - set_fact:
+          my_pass: "{{ lookup('password', '/dev/null length=12 chars=ascii_letters,hexdigits') }}"
+      - debug:
+          var: my_pass
+
+      - name: Get Root Password for ESXi {{ vsphere.name }}
+        shell: | 
+          export VAULT_ADDR='http://{{IP_Addr}}:8200'
+          token="{{vaultToken}}"
+          vault login $token 
+          vault kv get systemcreds/esxi/{{vsphere.name}}
+        register: esxi_pass
+     
+      - name: Update Password for ESXi
+        community.vmware.vmware_local_user_manager:
+          hostname: "{{vsphere.name}}"
+          username: root
+          password: '{{ esxi_pass.stdout_lines[24].split()[1] }}'
+          validate_certs: no
+          local_user_name: root
+          local_user_password: "{{ my_pass }}"
+        delegate_to: localhost
+        register: updated_pass
+      - debug:
+          var: updated_pass
+
+      - name: Update HasihCorp Vault ESXi {{vsphere.name}}
+        shell: |
+          export VAULT_ADDR='http://{{IP_Addr}}:8200'
+          token="{{vaultToken}}"
+          vault login $token 
+          vault kv put systemcreds/esxi/{{vsphere.name}} password={{ my_pass }}
+        register: esxi_pass
+      - debug:
+          var: esxi_pass
+
+
+      
+     

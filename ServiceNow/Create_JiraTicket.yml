@@ -1,0 +1,23 @@
+---
+- name: Create Jira Ticket
+  vars_files:
+    - secrets.yml
+  
+  tasks:
+  - name: Get Jira Password
+    shell: |
+      export VAULT_ADDR='http://{{IP_Addr}}:8200'
+      token="{{ secrets.vaultToken }}"
+      vault login $token 
+      vault kv get systemcreds/jira
+    register: jira
+
+  - name: Create Jira Issue
+    community.general.jira:
+      uri: "{{ Jira }}"
+      username: "{{ secrets.username }}"
+      password: '{{ jira.stdout_lines[24].split()[1] }}'
+      project: Automation
+      operation: create
+      issuetype: Task
+      summary: Jenkins Automation Task "{{TASK}}" is failing

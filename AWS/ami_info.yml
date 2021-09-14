@@ -1,0 +1,25 @@
+--- 
+- hosts: localhost
+  gather_facts: true
+  vars_files:
+    - secrets.yml
+  tasks:
+
+  - name: Get AMI 
+    amazon.aws.ec2_ami_info:
+      aws_access_key: "{{ secrets.user }}"
+      aws_secret_key: "{{ secrets.pswd }}"
+      owners: self
+      region: eu-west-1
+    register: ami
+
+  - name: Delete Old AMI Image backup
+    amazon.aws.ec2_ami:
+      image_id: "{{ item  }}"
+      delete_snapshot: True
+      state: absent
+    with_items:
+      - "{{ ami | json_query('results[].results[].ami_id') }}"
+    when: 
+      - ( (date_now|to_datetime('%Y-%m-%d')) - (ami_date| to_datetime('%Y-%m-%d')) ).days == "30"
+    

@@ -1,0 +1,28 @@
+- hosts: localhost
+  vars:
+  tasks:
+  - set_fact:
+      my_pass: "{{ lookup('password', '/dev/null length=12 chars=ascii_letters,hexdigits') }}"
+
+  - name: Pull secret
+    uri:
+      url: http://{{ Vault_addr }}/v1/kv/vSphere/ESXi/localhost
+      headers:
+        X-Vault-Token: "{{ Token_key }}"
+      validate_certs: false
+    register: result
+  - debug:
+      var: result.json.data.password
+
+  - name: Update Vault Password
+    uri:
+      url: http://{{ Vault_addr }}/v1/kv/vSphere/ESXi/localhost
+      method: POST
+      headers:
+        X-Vault-Token: "{{ Token_key }}"
+      body_format: raw
+      body: password={{ my_pass }}
+      return_content: false
+      validate_certs: false
+    ignore_errors: true #Working but giving Error Ignoring the Error.
+

@@ -1,0 +1,28 @@
+---
+- hosts: localhost
+  tasks:
+
+  - name: Get ESXi User & Password
+    uri:
+      url: http://{{ Vault_addr }}/v1/kv/vSphere/ESXi/Dev
+      headers:
+        X-Vault-Token: "{{ Token_key }}"
+      validate_certs: false
+    register: result_esxi
+
+  - name: Add ESXi to AD Domain
+      community.vmware.vmware_host_active_directory:
+      validate_certs: no
+      hostname:  "{{ esxi_host }}"
+      username:  result_esxi.json.data.username
+      password:  result_esxi.json.data.password
+      esxi_hostname: "{{ esxi_host }}"
+      domainname: "{{ domain }}"
+      dns_servers:
+        - "{{ DNS1 }}"
+        - "{{ DNS2}}"
+    delegate_to: localhost
+    register: Result
+
+  - debug:
+      var: Result

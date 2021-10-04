@@ -1,11 +1,43 @@
-- name: Join an AD domain
-  community.vmware.vmware_host_active_directory:
-    hostname: '{{ vcenter_name }}'
-    username: '{{ vcenter_user }}'
-    password: '{{ vcenter_pass }}'
-    esxi_hostname: '{{ ESXi_Host }}'
-    ad_domain: "{{ domain_name }}"
-    ad_user: "{{ domain_user }}"
-    ad_password: "{{ domain_pass }}"
-    ad_state: present
-  delegate_to: localhost
+---
+- hosts: localhost
+  tasks:
+  - name: Get vCenter Username & Password
+    uri:
+      url: http://{{ Vault_addr }}/v1/kv/vSphere/vCenter/Dev
+      headers:
+        X-Vault-Token: "{{ Token_key }}"
+      validate_certs: false
+    register: result_vcenter
+
+  - name: Get ESXi Username & Password
+    uri:
+      url: http://{{ Vault_addr }}/v1/kv/vSphere/ESXi/Dev
+      headers:
+        X-Vault-Token: "{{ Token_key }}"
+      validate_certs: false
+    register: result_esxi
+
+  - name: Get AD User & Password
+    uri:
+      url: http://{{ Vault_addr }}/v1/kv/Windows/JoinDomainUser
+      headers:
+        X-Vault-Token: "{{ Token_key }}"
+      validate_certs: false
+    register: result_ad
+
+  - name: Add ESXi to AD Domain
+      community.vmware.vmware_host_active_directory:
+      validate_certs: no
+      hostname:  result_vcenter.json.data.hostname
+      username:  result_vcenter.json.data.username
+      password:  result_vcenter.json.data.password
+      esxi_hostname: "{{ esxi_host }}"
+      ad_domain: "{{ AD_Domain }}"
+      ad_user: result_ad.json.data.username
+      ad_password: result_ad.json.data.password
+      ad_state: present
+    delegate_to: localhost
+    register: Result
+
+  - debug:
+      var: Result

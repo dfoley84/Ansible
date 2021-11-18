@@ -1,0 +1,57 @@
+---
+  - name: Test
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Getting Session Token
+      uri:
+        url: https://0.0.0.0/api/rest/login_session
+        validate_certs: False
+        headers:
+          Accept: application/json
+          Content-Type: "application/json"
+        user: 
+        password: ''
+        method: GET
+        status_code: 200 
+      register: Token
+    - debug:
+        var: Token['dell_emc_token']
+    
+    - name: Get KeyStore
+      uri:
+        url: https://0.0.0.0/api/rest/keystore_archive/regenerate
+        method: POST
+        validate_certs: False
+        headers:
+          Accept: application/zip
+          Content-Type: "application/json"
+        status_code: 200
+        user: 
+        password: ''
+      register: key 
+    - debug:
+        var: key.json['download_uri']
+    
+    - name: Download KeyStore
+      uri:
+        url: https://0.0.0.0{{alerts.json['download_uri']}}
+        method: GET
+        validate_certs: False
+        headers:
+          Accept: application/json
+          Content-Type: "application/json"
+        status_code: 200
+        user: 
+        password: ''
+        creates: /srv/workspace/backup.zip
+        dest: /srv/workspace/backup.zip
+      register: keydownload 
+    - debug:
+        var: keydownload
+    
+    
+
+        
+      
+    

@@ -1,0 +1,37 @@
+---
+  - name: Test
+    hosts: localhost
+    connection: local
+    tasks:
+    - name: Getting Session Token
+      uri:
+        url: https://{{url}}/api/rest/login_session
+        validate_certs: False
+        headers:
+          Accept: application/json
+          Content-Type: "application/json"
+        user: 
+        password: ''
+        method: GET
+        status_code: 200 
+      register: Token
+    - debug:
+        var: Token['dell_emc_token']
+    
+    - name: Get All Alerts
+      uri:
+        url: https://{{url}}/api/rest/alert
+        method: GET
+        validate_certs: False
+        headers:
+          Accept: application/json
+          Content-Type: "application/json"
+        status_code: 200
+        user: 
+        password: ''
+      register: alerts 
+    - debug:
+        var: alerts
+        
+      
+    

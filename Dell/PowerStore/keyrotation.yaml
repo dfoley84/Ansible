@@ -1,9 +1,8 @@
 ---
-  - name: Test
+  - name: PowerStore Key Backup
     hosts: localhost
     connection: local
     tasks:
-
     - name: Getting PowerStore credentials
       uri:
         url: http://{{ Vault_addr }}/v1/kv/Dell/powerstore/{{powerstorename}}
@@ -13,26 +12,10 @@
       register: result
     - debug:
         var: result.json.data.password
-
-
-    - name: Getting Session Token
+        
+    - name: Generate Key
       uri:
-        url: https://0.0.0.0/api/rest/login_session
-        validate_certs: False
-        headers:
-          Accept: application/json
-          Content-Type: "application/json"
-        user: "{{ result.json.data.user }}"
-        password: "{{ result.json.data.password }}"
-        method: GET
-        status_code: 200 
-      register: Token
-    - debug:
-        var: Token['dell_emc_token']
-    
-    - name: Get KeyStore
-      uri:
-        url: https://0.0.0.0/api/rest/keystore_archive/regenerate
+        url: https://{{ip_address}}/api/rest/keystore_archive/regenerate
         method: POST
         validate_certs: False
         headers:
@@ -42,12 +25,10 @@
         user: "{{ result.json.data.user }}"
         password: "{{ result.json.data.password }}"
       register: key 
-    - debug:
-        var: key.json['download_uri']
-    
-    - name: Download KeyStore
+      
+    - name: Download Key Backup
       uri:
-        url: https://0.0.0.0{{key.json['download_uri']}}
+        url: https://{{ip_address}}{{key.json['download_uri']}}
         method: GET
         validate_certs: False
         headers:

@@ -22,8 +22,8 @@
         headers:
           Accept: application/json
           Content-Type: "application/json"
-        user: {{ result.json.data.user }}
-        password: {{ result.json.data.password }}
+        user: "{{ result.json.data.user }}"
+        password: "{{ result.json.data.password }}"
         method: GET
         status_code: 200 
       register: Token
@@ -39,8 +39,8 @@
           Accept: application/zip
           Content-Type: "application/json"
         status_code: 200
-        user: {{ result.json.data.user }}
-        password: {{ result.json.data.password }}
+        user: "{{ result.json.data.user }}"
+        password: "{{ result.json.data.password }}"
       register: key 
     - debug:
         var: key.json['download_uri']
@@ -54,8 +54,8 @@
           Accept: application/json
           Content-Type: "application/json"
         status_code: 200
-        user: {{ result.json.data.user }}
-        password: {{ result.json.data.password }}
+        user: "{{ result.json.data.user }}"
+        password: "{{ result.json.data.password }}"
         creates: /srv/workspace/backup.zip
         dest: /srv/workspace/backup.zip
       register: keydownload 

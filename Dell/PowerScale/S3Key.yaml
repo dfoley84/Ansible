@@ -1,0 +1,30 @@
+---
+  - hosts: localhost
+    become: true
+    gather_facts: true
+    tasks:
+    - name: Getting PowerScale credentials
+      uri:
+        url: http://{{ Vault_addr }}/v1/kv/Dell/PowerScale/{{PowerScale_Host}}
+        headers:
+          X-Vault-Token: "{{ Token_key }}"
+        validate_certs: false
+      register: result
+ 
+    - name: Generate S3 Secret Key
+      uri:
+        url: https://{{result.json.data.ipaddress}}:8080/platform/10/protocols/s3/keys/{{ UserName }}
+        method: POST
+        force_basic_auth: yes
+        validate_certs: False
+        headers:
+          Content-Type: "application/json"
+        status_code: 201
+        user: "{{ result.json.data.user }}"
+        password: "{{ result.json.data.password }}"
+      register: key
+ 
+    - debug:
+        msg:
+        - "Access Key: '{{ key.json['keys']['access_id'] }}'"
+        - "Secret Key: ' {{ key.json['keys']['secret_key'] }}'"

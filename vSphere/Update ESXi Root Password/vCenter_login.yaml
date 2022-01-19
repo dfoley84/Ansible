@@ -1,0 +1,38 @@
+---
+    - name: Get All ESXi Part of {{ site.name }}
+      block:
+        - name: Get vCenter Password 
+          uri:
+            url: http://{{ Vault_addr }}/v1/kv/vSphere/vCenter/{{ site.name }}
+            headers:
+              X-Vault-Token: "{{ Token_key }}"
+          validate_certs: false
+          register: vcsa_pswd
+
+        - name: Log into vCenter Rest API 
+          uri:
+            url: "https://{{site}}/rest/com/vmware/cis/session"
+            force_basic_auth: yes
+            method: POST
+            user: vcsa_pswd.json.data.username
+            password: vcsa_pswd.json.data.password
+            status_code: 200
+            validate_certs: no
+          register: login
+
+        - name: Get All ESXi hostnames
+          uri:
+            url: "https://{{site}}/rest/vcenter/host"
+            force_basic_auth: yes
+            validate_certs: no
+            headers:
+              Cookie: "{{login.set_cookie}}"
+          register: vchosts
+        
+        - name: Connecting to vCenter {{ site }}
+          include_tasks: UpdateESXi.yaml
+          with_items:
+              - "{{ vchosts.json.value }}" 
+          loop_control:
+            loop_var: vsphere
+      ignore_errors: true

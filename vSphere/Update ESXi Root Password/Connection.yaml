@@ -1,0 +1,14 @@
+---
+- name: Connect to vCenter
+  hosts: localhost
+  connection: local
+  vars:
+    vcenter:
+      - { name:  , address:  }
+  tasks:
+  - name: Connecting to vCenters
+    include_tasks: vCenter_Login.yaml
+    with_items:
+      - "{{ vcenter }}"
+    loop_control:
+      loop_var: site

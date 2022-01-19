@@ -1,0 +1,42 @@
+---
+    - name: Update the local user password in ESXi host {{ vsphere.name }}
+      block:
+        - set_fact:
+            new_pass : "{{ lookup('password', '/dev/null length=12 chars=ascii_letters,hexdigits') }}"
+        - debug:
+            var: new_pass
+
+        - name: Get vCenter Password 
+          uri:
+            url: http://{{ Vault_addr }}/v1/kv/vSphere/vCenter/{{site.name}}
+            headers:
+              X-Vault-Token: "{{ Token_key }}"
+          validate_certs: false
+          register: vcsa_pswd
+
+        - name: Update Password for ESXi {{ vsphere.name }}
+          community.vmware.vmware_host_user_manager:
+            hostname: '{{ site.name }}'
+            username: vcsa_pswd.json.data.username
+            password: vcsa_pswd.json.data.password
+            validate_certs: false
+            esxi_hostname: "{{ vsphere.name }}"
+            user_name: root
+            user_description: "ESXi Root User"
+            user_password: "{{ new_pass }}"
+            override_user_password: true
+            state: present
+        
+        - name: Update ESXi Root Password in Vault ESXI {{ vsphere.name }}
+          uri: 
+            url: http://{{ Vault_addr }}/v1/kv/vSphere/ESXi/{{vsphere.name}}
+            method: POST
+            body_format: json
+            body:
+              {"password": "{{ new_pass }}" }
+            headers:
+              X-Vault-Token: "{{ Token_key }}"
+          validate_certs: false
+          register: esxi_pswd
+        - debug:
+            var: esxi_pswd

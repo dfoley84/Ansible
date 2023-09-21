@@ -1,0 +1,49 @@
+---
+# playbook.yml
+- name: 'Prometheus Node Exporter'
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Download Node Exporter
+      ansible.builtin.unarchive:
+        src: https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
+        dest: /tmp
+        remote_src: yes
+      
+    - name: Create Node Exporter User
+      ansible.builtin.user:
+        name: node_exporter
+        shell: /sbin/nologin
+        state: present
+
+    - name: Move Node Export to usr/bin 
+      ansible.builtin.copy:
+        src: /tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter
+        dest:  /usr/local/bin/
+        owner: node_exporter
+        group: node_exporter
+        mode: 0755
+    
+    - name: Install Node Exporter Service
+      ansible.builtin.copy:
+        src: ansible/templates/node_exporter.service
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        remote_src: yes
+
+    - name: Configure systemd to use service
+      systemd:
+        daemon_reload: yes
+        name: node_exporter.service
+        enabled: yes
+        state: started
+
+    - name: enable node_exporter service
+      ansible.builtin.systemd:
+        name: node_exporter.service
+        enabled: yes
+        state: started
+        daemon_reload: yes
+    

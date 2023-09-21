@@ -1,0 +1,124 @@
+---
+- name: 'CIS Domain 5'
+  hosts: localhost
+  become: yes
+  tasks:
+    - name:  Ensure cron daemon is enabled and running
+      ansible.builtin.service:
+        name: crond
+        state: started
+        enabled: yes
+
+
+    - name:  Ensure permissions on /etc/crontab are configured
+      ansible.builtin.file:
+        path: /etc/crontab
+        owner: root
+        group: root
+        mode: 0600
+
+    - name: Ensure permissions on /etc/cron.hourly are configured
+      ansible.builtin.file:
+        path: /etc/cron.hourly
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+
+    - name: Ensure permissions on /etc/cron.daily are configured
+      ansible.builtin.file:
+        path: /etc/cron.daily
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+
+    - name: Ensure permissions on /etc/cron.weekly are configured
+      ansible.builtin.file:
+        path: /etc/cron.weekly
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+
+    - name:  Ensure permissions on /etc/cron.monthly are configured
+      ansible.builtin.file:
+        path: /etc/cron.monthly
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+
+    - name:  Ensure permissions on /etc/cron.d are configured
+      ansible.builtin.file:
+        path: /etc/cron.d
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+
+    - name: "SCORED | 5.1.8 | PATCH | Ensure at/cron is restricted to authorized users"
+      block:
+        - name: "SCORED | 5.1.8 | PATCH | Ensure at/cron is restricted to authorized users"
+          ansible.builtin.file:
+            dest: /etc/at.deny
+            state: absent
+
+        - name: "SCORED | 5.1.8 | PATCH | Check if at.allow exists"
+          stat:
+            path: "/etc/at.allow"
+          register: p
+
+        - name: "SCORED | 5.1.8 | PATCH | Ensure at/cron is restricted to authorized users"
+          ansible.builtin.file:
+            dest: /etc/at.allow
+            state: '{{ "file" if  p.stat.exists else "touch" }}'
+            owner: root
+            group: root
+            mode: 0600
+
+        - name: "SCORED | 5.1.8 | PATCH | Ensure at/cron is restricted to authorized users"
+          ansible.builtin.file:
+            dest: /etc/cron.deny
+            state: absent
+
+        - name: "SCORED | 5.1.8 | PATCH | Check if cron.allow exists"
+          stat:
+            path: "/etc/cron.allow"
+          register: p
+
+        - name: "SCORED | 5.1.8 | PATCH | Ensure at/cron is restricted to authorized users"
+          ansible.builtin.file:
+            dest: /etc/cron.allow
+            state: '{{ "file" if  p.stat.exists else "touch" }}'
+            owner: root
+            group: root
+            mode: 0600
+
+    - name: "5.2.1 Ensure Sudo is installed"
+      ansible.builtin.package:
+        name: sudo
+        state: present
+
+    - name: "5.2.2 Ensure sudo commands use pty"
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        regexp: '^Defaults\s+!requiretty'
+        line: 'Defaults !requiretty'
+
+    - name: "Ensure sudo log file exists"
+      ansible.builtin.file:
+        path: /var/log/sudo.log
+        state: touch
+    
+    - name: Check if /etc/ssh/sshd_config exists
+      stat:
+        path: /etc/ssh/sshd_config
+      register: sshd_config
+
+    - name: 5.2.4 - Ensure SSH X11 forwarding is disabled
+      lineinfile:
+        regexp: "^X11Forwarding\\s+"
+        line: "X11Forwarding no"
+        dest: "/etc/ssh/sshd_config"
+      when: sshd_config.stat.exists

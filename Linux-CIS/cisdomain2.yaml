@@ -1,0 +1,48 @@
+---
+- name: 'CIS Domain 5'
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Ensure Following Packages are not installed
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - xorg-x11-server*
+        - avahi
+        - aide
+        - cups
+        - xinetd
+        - dhcp
+        - openldap-server
+        - bind
+        - vsftpd
+        - httpd
+        - dovecot
+        - samba
+        - squid
+        - net-snmp
+        - ypserv
+        - telnet-server
+        - nfs-utils
+        - rpcbind
+        - rsync
+        - rsh-server
+        - tftp-server
+        - ypbind
+        - rsh
+        - talk
+        - telnet
+        - openldap-clients
+
+
+    - name: Ensure mail transfer agent is configured for local-only mode
+      ansible.builtin.lineinfile:
+        path: /etc/postfix/main.cf
+        regexp: '^inet_interfaces = localhost'
+        line: 'inet_interfaces = localhost'
+        state: present
+        create: yes
+        mode: 0644
+        owner: root
+        group: root

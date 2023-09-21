@@ -1,0 +1,60 @@
+---
+- name: 'CIS Domain 6'
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: "Ensure permissions on /etc/passwd are configured"
+      ansible.builtin.shell: |
+        chown root:root /etc/passwd
+        chmod u-x,g-wx,o-wx /etc/passwd
+        chown root:root /etc/passwd-
+        chmod u-x,go-wx /etc/passwd-
+
+    - name: "Ensure permissions on /etc/shadow are configured"
+      ansible.builtin.shell: |
+        chown root:shadow /etc/shadow
+        chmod u-x,g-rw,o-rwx /etc/shadow
+        chown root:shadow /etc/shadow-
+        chmod u-x,go-rwx /etc/shadow-
+
+    - name: "Ensure permissions on /etc/gshadow are configured"
+      ansible.builtin.shell: |
+        chown root:shadow /etc/gshadow
+        chmod u-x,g-rw,o-rwx /etc/gshadow
+        chown root:shadow /etc/gshadow-
+        chmod u-x,go-rwx /etc/gshadow-
+
+    - name: "Ensure permissions on /etc/group are configured"
+      ansible.builtin.shell: |
+        chown root:root /etc/group
+        chmod u-x,g-wx,o-wx /etc/group
+        chown root:root /etc/group-
+        chmod u-x,go-wx /etc/group-
+
+    - name: "Ensure accounts in /etc/passwd use shadowed passwords"
+      ansible.builtin.shell: |
+        awk -F: '($2 == "" ) { print $1 " does not have a password "}' /etc/passwd
+
+    - name: "Ensure shadow group is empty"
+      ansible.builtin.shell: |
+        sed -ri 's/(^shadow:[^:]*:[^:]*:)([^:]+$)/\1/' /etc/group
+
+    - name: "6.1.10 | PATCH | Ensure no world writable files exist"
+      command: /bin/true
+      changed_when: no
+
+    - name: "6.1.11 | PATCH | Ensure no unowned files or directories exist"
+      command: /bin/true
+      changed_when: no
+
+    - name: "SCORED | 6.2.2 | PATCH | Ensure no legacy '+' entries exist in /etc/passwd"
+      shell: "sed -i '/^+/ d' /etc/passwd"
+      args:
+        warn: no
+      ignore_errors: yes
+
+    - name: "SCORED | 6.2.3 | PATCH | Ensure no legacy '+' entries exist in /etc/shadow"
+      command: "sed -i '/^+/ d' /etc/shadow"
+
+    - name: "SCORED | 6.2.4 | PATCH | Ensure no legacy '+' entries exist in /etc/group"
+      command: "sed -i '/^+/ d' /etc/group"

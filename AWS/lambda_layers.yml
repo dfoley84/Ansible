@@ -1,0 +1,44 @@
+---
+- name: AWS Lambda Layers 
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    regions:
+      - eu-west-1  
+      - us-east-1 
+      - us-west-2 
+      - ap-southeast-2
+    
+    layers:
+      - name: confluence
+        zip_file: confluence.zip
+      - name: paramiko
+        zip_file: paramiko.zip
+      - name: pyscopg2
+        zip_file: psycopg2.zip
+      - name: pycryptodome
+        zip_file: pycryptodome.zip
+      - name: PyMySQL
+        zip_file: PyMySQL.zip
+      - name: sqlalchemy
+        zip_file: SQLAlchemy.zip
+
+  tasks:
+    - name: Create Lambda Layers in all regions
+      amazon.aws.lambda_layer:
+        state: present
+        name: "{{ item.1.name }}"
+        description: 'Python Layers'
+        content:
+          zip_file: "{{ item.1.zip_file }}"
+        compatible_runtimes:
+          - python3.13
+        license_info: MIT
+        compatible_architectures:
+          - x86_64
+          - arm64
+        region: "{{ item.0 }}"
+      loop: "{{ regions | product(layers) | list }}"
+      register: layer_results

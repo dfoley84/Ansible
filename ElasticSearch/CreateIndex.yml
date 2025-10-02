@@ -1,0 +1,29 @@
+---
+- name: Create Elasticsearch Index
+  hosts: localhost
+  gather_facts: false
+  vars:
+    index:
+     - myindex
+     - anotherindex
+     - thirdindex
+
+  tasks:
+    - name: Create an index called myindex
+      uri:
+        url: "https://{{ Elasticsearch_endpoint }}/{{ item }}"
+        method: PUT
+        headers:
+          Authorization: "ApiKey {{ Kibana_API_Key }}"
+          Content-Type: "application/json"
+        body_format: json
+        body: {} 
+        status_code: [200, 400]
+        validate_certs: yes
+      loop: "{{ index }}"
+      register: result
+  
+
+    - name: Show result
+      debug:
+        var: result

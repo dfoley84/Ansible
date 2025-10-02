@@ -1,0 +1,15 @@
+- name: Get all connectors
+  uri:
+    url: "{{ Kibana_URL }}/api/actions/connectors"
+    method: GET
+    headers:
+      Authorization: "ApiKey {{ Kibana_API_Key }}"
+      Content-Type: "application/json"
+      kbn-xsrf: "true"
+    body_format: json
+    status_code: 200
+    validate_certs: yes
+  register: connectors_result
+
+
+  

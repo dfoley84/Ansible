@@ -1,0 +1,35 @@
+---
+- name: Kibana Configuration
+  hosts: localhost
+  gather_facts: true
+  vars:
+
+    Kibana_URL: "{{ Kibana_URL_variable }}"
+    Kibana_API_Key: "{{ Kibana_API_Key_variable }}"
+    Slack:
+      - { name: ' ', webhook: '{{ }}' }
+      - { name: '', webhook: '{{ }}' }
+    Jira:
+      - { name: 'Jira', url: '{{ }}', projectkey: '{{ }}', apitoken: '{{ }}', email: '{{ }}' }
+
+    #Alerting Rules
+    alerting:
+      - { name: '', slack: ' '}
+
+
+  tasks:
+    - include_tasks: GetFeatures.yml
+    - include_tasks: GetRules.yml 
+    - include_tasks: GetConnectors.yml
+    - include_tasks: SlackConnectors.yml
+      loop: "{{ Slack }}"
+      loop_control:
+        loop_var: Slack
+    - include_tasks: JiraConnectors.yml
+      loop: "{{ Jira }}"
+      loop_control:
+        loop_var: Jira
+    - include_tasks: AlertRule.yml
+      loop: "{{ alerting }}"
+      loop_control:
+        loop_var: alerting

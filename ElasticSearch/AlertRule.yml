@@ -1,0 +1,50 @@
+- name: Get Slack connector ID
+  set_fact:
+    slack_connector_id: >-
+      {{
+        (connectors_result.json
+          | selectattr('name', 'equalto', alerting.slack)
+          | selectattr('connector_type_id', 'equalto', '.slack')
+          | list
+          | first
+          | default({})
+        ).id | default('')
+      }}
+
+- name: "Check if Alert Rule {{ alerting.name }} Exists"
+  set_fact:
+    alert_rule_id: >-
+      {{
+        (rules_result.json.data
+          | selectattr('name', 'equalto', alerting.name)
+          | list
+          | first
+          | default({})
+        ).id | default('')
+      }}
+
+###
+#### Block of Code to Create the Alert Rule if it doesn't already exist within Kibana 
+####
+- block:
+    - name: Render jinja Template
+      template:
+        src: AlertRules/{{ alerting.name }}.json.j2
+        dest: AlertRules/{{ alerting.name }}.json
+
+    - name: 'Create Kibana Alert Rule for {{ alerting.name }}'
+      uri:
+        url: "{{ Kibana_URL }}/api/alerting/rule"
+        method: POST
+        headers:
+          Authorization: "ApiKey {{ Kibana_API_Key }}"
+          Content-Type: "application/json"
+          kbn-xsrf: "true"
+        body_format: json
+        body: "{{ lookup('file', 'AlertRules/' + alerting.name  + '.json') }}"
+      register: alert_rule_result
+
+    - name: Alert {{ alerting.name }} Output
+      debug:
+        var: alert_rule_result
+  when: not alert_rule_id

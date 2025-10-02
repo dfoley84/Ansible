@@ -1,0 +1,19 @@
+- name: Get all Features
+  uri:
+    url: "{{ Kibana_URL }}/api/features"
+    method: GET
+    headers:
+      Authorization: "ApiKey {{ Kibana_API_Key }}"
+      Content-Type: "application/json"
+      kbn-xsrf: "true"
+    body_format: json
+    status_code: 200
+    validate_certs: yes
+  register: api_features_result
+
+- name: Display Features
+  debug:
+    var: api_features_result.json
+
+
+  

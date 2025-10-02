@@ -1,0 +1,33 @@
+
+- name: "Checking if Jira Connector Exists: {{ Jira.name }}"
+  set_fact:
+    jira_connector_exists: "{{ connectors_result.json | selectattr('name', 'equalto', Jira.name) | selectattr('connector_type_id', 'equalto', '.jira') | list | length > 0 }}"
+
+
+- block:
+    - name: "Creating Jira Connector: {{ Jira.name }}"
+      uri:
+        url: "{{ Kibana_URL }}/api/actions/connector"
+        method: POST
+        headers:
+          Authorization: "ApiKey {{ Kibana_API_Key }}"
+          Content-Type: "application/json"
+          kbn-xsrf: "true"
+        body_format: json
+        body:
+          name: "{{ Jira.name }}"
+          connector_type_id: ".jira"
+          config:
+            apiUrl: "{{ Jira.url }}"
+            projectKey: "{{Jira.projectkey }}"
+          secrets:
+            apiToken: "{{ Jira.apitoken }}"
+            email: "{{ Jira.email }}"
+        status_code: [200, 201]
+        validate_certs: yes
+      register: jira_result
+
+    - name: "Jira Connector Created: {{ Jira.name }}"
+      debug:
+        var: jira_result
+  when: not jira_connector_exists

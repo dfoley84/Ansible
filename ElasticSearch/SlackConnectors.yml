@@ -1,0 +1,29 @@
+- name: "Checking if Slack Connector Exists: {{ Slack.name }}"
+  set_fact:
+    slack_connector_exists: "{{ connectors_result.json | selectattr('name', 'equalto', Slack.name) | selectattr('connector_type_id', 'equalto', '.slack') | list | length > 0 }}"
+
+
+- block:
+    - name: "Creating Slack Connector: {{ Slack.name }}"
+      uri:
+        url: "{{ Kibana_URL }}/api/actions/connector"
+        method: POST
+        headers:
+          Authorization: "ApiKey {{ Kibana_API_Key }}"
+          Content-Type: "application/json"
+          kbn-xsrf: "true"
+        body_format: json
+        body:
+          name: "{{ Slack.name }}"
+          connector_type_id: ".slack"
+          config: {}
+          secrets:
+            webhookUrl: "{{ Slack.webhook }}"
+        status_code: [200, 201]
+        validate_certs: yes
+      register: webhook_result
+
+    - name: Connection {{ slack.name }} Output
+      debug:
+        var: alert_rule_result
+  when: not slack_connector_exists
